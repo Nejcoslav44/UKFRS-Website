@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UKFRS – United Kingdom Fire and Rescue Service</title>
+  <meta name="description" content="UKFRS – professional fire and rescue roleplay organisation within FiveM. Operations, fleet, training, recruitment and updates." />
+  <style>
+    :root{
+      --bg:#ffffff;
+      --bg2:#f6f7f9;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --brand:#b91c1c; /* UKFRS red */
+      --brand2:#0f172a; /* deep navy */
+      --card:#ffffff;
+      --shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+      --radius: 10px;
+      --max: 1150px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:var(--bg);
+      line-height:1.55;
+    }
+    a{color:inherit; text-decoration:none}
+    img{max-width:100%; display:block}
+
+    /* Header */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:1000;
+      background:var(--brand2);
+      border-bottom:1px solid rgba(255,255,255,0.08);
+    }
+    .navwrap{
+      max-width:var(--max);
+      margin:0 auto;
+      padding:12px 16px;
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:220px;
+    }
+    .logo{
+      width:38px;height:38px;
+      border-radius:8px;
+      background:rgba(255,255,255,0.12);
+      display:grid; place-items:center;
+      font-weight:800;
+      color:#fff;
+      letter-spacing:0.5px;
+    }
+    .brandtext{
+      color:#fff;
+      line-height:1.1;
+    }
+    .brandtext strong{display:block; font-size:14px; letter-spacing:0.6px}
+    .brandtext span{display:block; font-size:12px; color:rgba(255,255,255,0.70)}
+    .nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-left:auto;
+      align-items:center;
+    }
+    .nav a{
+      color:rgba(255,255,255,0.92);
+      font-size:13px;
+      padding:8px 10px;
+      border-radius:8px;
+    }
+    .nav a:hover{background:rgba(255,255,255,0.08)}
+    .cta{
+      background:var(--brand);
+      color:#fff !important;
+      padding:8px 12px !important;
+      font-weight:700;
+    }
+    .cta:hover{filter:brightness(1.05); background:var(--brand)}
+
+    /* Hero */
+    .hero{
+      position:relative;
+      min-height:520px;
+      background:
+        linear-gradient(180deg, rgba(15,23,42,0.75), rgba(15,23,42,0.80)),
+        url("https://images.unsplash.com/photo-1614767672145-6b6f5a7efa7b?auto=format&fit=crop&w=2000&q=70");
+      background-size:cover;
+      background-position:center;
+      color:#fff;
+      border-bottom:1px solid rgba(15,23,42,0.10);
+    }
+    .herowrap{
+      max-width:var(--max);
+      margin:0 auto;
+      padding:84px 16px 60px;
+    }
+    .kicker{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.10);
+      border:1px solid rgba(255,255,255,0.12);
+      font-size:12px;
+      color:rgba(255,255,255,0.90);
+      letter-spacing:0.3px;
+    }
+    .kicker .dot{
+      width:8px;height:8px;border-radius:99px;background:var(--brand);
+      box-shadow:0 0 0 3px rgba(185,28,28,0.25);
+    }
+    h1{
+      margin:14px 0 8px;
+      font-size:44px;
+      line-height:1.1;
+      letter-spacing:-0.6px;
+    }
+    .subtitle{
+      max-width:680px;
+      font-size:16px;
+      color:rgba(255,255,255,0.85);
+      margin:0 0 22px;
+    }
+    .herobtns{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      border-radius:10px;
+      padding:12px 14px;
+      font-size:14px;
+      font-weight:700;
+      border:1px solid transparent;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn.primary{
+      background:var(--brand);
+      color:#fff;
+      box-shadow:0 10px 24px rgba(185, 28, 28, 0.25);
+    }
+    .btn.primary:hover{filter:brightness(1.05)}
+    .btn.secondary{
+      background:rgba(255,255,255,0.10);
+      color:#fff;
+      border-color:rgba(255,255,255,0.16);
+    }
+    .btn.secondary:hover{background:rgba(255,255,255,0.14)}
+
+    /* Sections */
+    section{padding:56px 0}
+    .wrap{max-width:var(--max); margin:0 auto; padding:0 16px}
+    .sectionhead{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    .sectionhead h2{
+      margin:0;
+      font-size:26px;
+      letter-spacing:-0.3px;
+    }
+    .sectionhead p{
+      margin:0;
+      color:var(--muted);
+      max-width:640px;
+      font-size:14px;
+    }
+
+    /* Cards grid */
+    .grid{
+      display:grid;
+      gap:14px;
+    }
+    .grid.cols-4{grid-template-columns:repeat(4, 1fr)}
+    .grid.cols-3{grid-template-columns:repeat(3, 1fr)}
+    .grid.cols-2{grid-template-columns:repeat(2, 1fr)}
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+    .card .tag{
+      display:inline-block;
+      font-size:12px;
+      color:var(--brand);
+      font-weight:800;
+      letter-spacing:0.3px;
+      margin-bottom:6px;
+      text-transform:uppercase;
+    }
+    .card h3{
+      margin:0 0 8px;
+      font-size:16px;
+      letter-spacing:-0.2px;
+    }
+    .card p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .card a.more{
+      display:inline-block;
+      margin-top:12px;
+      font-weight:800;
+      font-size:13px;
+      color:var(--brand2);
+    }
+    .card a.more:hover{color:var(--brand)}
+
+    /* Split block */
+    .split{
+      display:grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    .panel{
+      background:var(--bg2);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+    }
+    .panel h3{margin:0 0 10px}
+    .panel ul{margin:0; padding-left:18px; color:var(--muted); font-size:14px}
+    .panel li{margin:6px 0}
+
+    /* News */
+    .news{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:14px;
+    }
+    .newsitem{
+      border-radius:var(--radius);
+      border:1px solid var(--line);
+      overflow:hidden;
+      background:#fff;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+    }
+    .newsitem .img{
+      height:170px;
+      background:#ddd;
+      background-size:cover;
+      background-position:center;
+    }
+    .newsitem .body{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      flex:1;
+    }
+    .meta{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .newsitem h3{margin:0; font-size:16px}
+    .newsitem p{margin:0; color:var(--muted); font-size:13px}
+    .newsitem a{
+      margin-top:auto;
+      font-weight:800;
+      font-size:13px;
+      color:var(--brand2);
+    }
+    .newsitem a:hover{color:var(--brand)}
+
+    /* Contact */
+    .contactgrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+    }
+    .contactbox{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:16px;
+      background:#fff;
+      box-shadow:var(--shadow);
+    }
+    label{display:block; font-size:13px; font-weight:700; margin:10px 0 6px}
+    input, textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      font:inherit;
+      background:#fff;
+    }
+    textarea{min-height:120px; resize:vertical}
+    .formnote{font-size:12px; color:var(--muted); margin-top:10px}
+
+    /* Footer */
+    footer{
+      background:var(--brand2);
+      color:rgba(255,255,255,0.88);
+      border-top:1px solid rgba(255,255,255,0.08);
+    }
+    .footwrap{
+      max-width:var(--max);
+      margin:0 auto;
+      padding:26px 16px;
+      display:grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap:16px;
+    }
+    footer h4{margin:0 0 10px; color:#fff}
+    footer a{color:rgba(255,255,255,0.85)}
+    footer a:hover{color:#fff}
+    .small{font-size:12px; color:rgba(255,255,255,0.70)}
+    .footbar{
+      border-top:1px solid rgba(255,255,255,0.08);
+      padding:12px 16px;
+      text-align:center;
+      font-size:12px;
+      color:rgba(255,255,255,0.70);
+    }
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .grid.cols-4{grid-template-columns:repeat(2, 1fr)}
+      .grid.cols-3{grid-template-columns:repeat(2, 1fr)}
+      .news{grid-template-columns:repeat(2, 1fr)}
+      .split{grid-template-columns:1fr}
+      .footwrap{grid-template-columns:1fr}
+      h1{font-size:36px}
+    }
+    @media (max-width: 620px){
+      .navwrap{flex-wrap:wrap}
+      .brand{min-width:auto}
+      .nav{justify-content:flex-start}
+      .grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr}
+      .news{grid-template-columns:1fr}
+      .contactgrid{grid-template-columns:1fr}
+      .hero{min-height:520px}
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="topbar">
+    <div class="navwrap">
+      <a class="brand" href="#home" aria-label="UKFRS Home">
+        <div class="logo">UK</div>
+        <div class="brandtext">
+          <strong>UKFRS</strong>
+          <span>United Kingdom Fire and Rescue Service</span>
+        </div>
+      </a>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="#about">About</a>
+        <a href="#news">News</a>
+        <a href="#operations">Operations</a>
+        <a href="#fleet">Fleet</a>
+        <a href="#join">Join</a>
+        <a href="#contact" class="cta">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main id="home" class="hero">
+    <div class="herowrap">
+      <div class="kicker"><span class="dot"></span> Operational readiness • Structured training • Professional comms</div>
+      <h1>UKFRS – United Kingdom Fire and Rescue Service</h1>
+      <p class="subtitle">
+        A FiveM fire and rescue organisation focused on realism, disciplined incident command, and consistent standards.
+        Explore our operations, fleet, training pathway, and recruitment.
+      </p>
+      <div class="herobtns">
+        <a class="btn primary" href="#join">Join UKFRS</a>
+        <a class="btn secondary" href="#news">Latest Updates</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Quick actions -->
+  <section aria-label="Highlights">
+    <div class="wrap">
+      <div class="grid cols-4">
+        <div class="card">
+          <span class="tag">Recruitment</span>
+          <h3>Join a structured service</h3>
+          <p>Clear ranks, training pipeline, probation and competence sign-off.</p>
+          <a class="more" href="#join">View recruitment →</a>
+        </div>
+
+        <div class="card">
+          <span class="tag">Fleet</span>
+          <h3>Appliances & specialist units</h3>
+          <p>Catalogue-style fleet pages with roles, equipment and station assignment.</p>
+          <a class="more" href="#fleet">Explore fleet →</a>
+        </div>
+
+        <div class="card">
+          <span class="tag">Operations</span>
+          <h3>Professional incident response</h3>
+          <p>Fire, RTC, rescue/USAR, HazMat, water response and safety work.</p>
+          <a class="more" href="#operations">See operations →</a>
+        </div>
+
+        <div class="card">
+          <span class="tag">Community</span>
+          <h3>Safety & prevention</h3>
+          <p>Practical guidance and education to support higher-quality roleplay.</p>
+          <a class="more" href="#about">Learn more →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" style="background:var(--bg2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+    <div class="wrap">
+      <div class="sectionhead">
+        <div>
+          <h2>About UKFRS</h2>
+          <p>
+            UKFRS is built around realism, calm communications, safe systems of work, and scalable incident management.
+            We model UK-style procedures while adapting to server rules and roleplay needs.
+          </p>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="panel">
+          <h3>Mission</h3>
+          <p style="margin:0; color:var(--muted); font-size:14px;">
+            Provide reliable emergency response and structured training that improves roleplay quality, safety and community experience.
+          </p>
+
+          <div style="height:12px"></div>
+
+          <h3>Values</h3>
+          <ul>
+            <li>Professionalism in conduct and communications</li>
+            <li>Competence through training and assessment</li>
+            <li>Teamwork across watches, stations and partner services</li>
+            <li>Accountability: clear command, clear decisions, clear outcomes</li>
+            <li>Community safety and prevention</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <h3>Organisation snapshot</h3>
+          <ul>
+            <li>Command structure: CFO → Watch/Station management → Crews</li>
+            <li>Operational model: Incident Commander + sectors as required</li>
+            <li>Training pathway: Academy → probation → competence sign-off</li>
+            <li>Specialist capability: HazMat / water / rescue (as available)</li>
+          </ul>
+
+          <div style="height:14px"></div>
+
+          <a class="btn primary" href="#contact" style="width:100%; text-align:center;">Contact UKFRS</a>
+          <p class="formnote">Replace contact details and links with your Discord/application endpoints.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- News -->
+  <section id="news" aria-label="News and updates">
+    <div class="wrap">
+      <div class="sectionhead">
+        <div>
+          <h2>Latest News & Operational Updates</h2>
+          <p>Announcements, training reports, incident summaries and community events.</p>
+        </div>
+      </div>
+
+      <div class="news">
+        <article class="newsitem">
+          <div class="img" style="background-image:url('https://images.unsplash.com/photo-1608123819288-4eabceb2d440?auto=format&fit=crop&w=1200&q=70');"></div>
+          <div class="body">
+            <div class="meta">Training • 15 Jan 2026</div>
+            <h3>BA Entry Control & compartment procedures</h3>
+            <p>Structured BA drills with comms discipline, safety oversight, and debrief learning points.</p>
+            <a href="#contact" aria-label="Read more">Read more →</a>
+          </div>
+        </article>
+
+        <article class="newsitem">
+          <div class="img" style="background-image:url('https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1200&q=70');"></div>
+          <div class="body">
+            <div class="meta">Incident • 15 Jan 2026</div>
+            <h3>RTC response: stabilization & casualty access</h3>
+            <p>Scene safety, vehicle stabilization, access, extrication support, and handover procedure.</p>
+            <a href="#contact" aria-label="Read more">Read more →</a>
+          </div>
+        </article>
+
+        <article class="newsitem">
+          <div class="img" style="background-image:url('https://images.unsplash.com/photo-1516641392979-046f0b9bb7b6?auto=format&fit=crop&w=1200&q=70');"></div>
+          <div class="body">
+            <div class="meta">Announcement • 15 Jan 2026</div>
+            <h3>Recruitment intake now open</h3>
+            <p>Applications open for probationary firefighters. Training academy schedule published.</p>
+            <a href="#join" aria-label="Apply">Apply →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Operations -->
+  <section id="operations" style="background:var(--bg2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+    <div class="wrap">
+      <div class="sectionhead">
+        <div>
+          <h2>Operations</h2>
+          <p>Core response areas delivered through clear command, safe systems of work and realistic procedures.</p>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="card">
+          <span class="tag">Fire</span>
+          <h3>Firefighting & BA</h3>
+          <p>Initial attendance, water supply, BA operations, ventilation and overhaul.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">RTC</span>
+          <h3>Road Traffic Collisions</h3>
+          <p>Scene safety, stabilization, casualty access, extrication support and handover.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">Rescue</span>
+          <h3>Rescue / USAR</h3>
+          <p>Search, access, casualty packaging, lifting/moving and technical rescue support.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">HazMat</span>
+          <h3>Hazardous Materials</h3>
+          <p>Identification, zoning, PPE selection, decontamination and risk management.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">Water</span>
+          <h3>Water & Flood</h3>
+          <p>Dynamic risk assessment, casualty recovery and flood hazard management.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">Safety</span>
+          <h3>Community Safety</h3>
+          <p>Prevention guidance, education content and safety-focused initiatives.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fleet -->
+  <section id="fleet" aria-label="Fleet and equipment">
+    <div class="wrap">
+      <div class="sectionhead">
+        <div>
+          <h2>Fleet & Equipment</h2>
+          <p>Catalogue-style overview of appliances and specialist capability. Replace entries with your real fleet.</p>
+        </div>
+      </div>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <span class="tag">Appliance</span>
+          <h3>Pumping Appliance (Pump 1)</h3>
+          <p><strong>Role:</strong> First attendance fire and rescue<br>
+             <strong>Crew:</strong> 1+5<br>
+             <strong>Highlights:</strong> Hose/branches, ladders, BA sets, scene lighting.</p>
+          <a class="more" href="#contact">Fleet details →</a>
+        </div>
+
+        <div class="card">
+          <span class="tag">Specialist</span>
+          <h3>Rescue Unit (Rescue 2)</h3>
+          <p><strong>Role:</strong> RTC and technical rescue support<br>
+             <strong>Crew:</strong> 1+3<br>
+             <strong>Highlights:</strong> Cutters/spreaders, stabilization, casualty packaging.</p>
+          <a class="more" href="#contact">Fleet details →</a>
+        </div>
+
+        <div class="card">
+          <span class="tag">Specialist</span>
+          <h3>HazMat Unit (HazMat 1)</h3>
+          <p><strong>Role:</strong> HazMat response and decon<br>
+             <strong>Crew:</strong> 1+3<br>
+             <strong>Highlights:</strong> PPE, detection, zoning, decontamination.</p>
+          <a class="more" href="#contact">Fleet details →</a>
+        </div>
+
+        <div class="card">
+          <span class="tag">Command</span>
+          <h3>Command Support (Command 1)</h3>
+          <p><strong>Role:</strong> Incident command & coordination<br>
+             <strong>Highlights:</strong> Command comms, sector coordination, incident logging.</p>
+          <a class="more" href="#contact">Fleet details →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Join -->
+  <section id="join" style="background:var(--bg2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+    <div class="wrap">
+      <div class="sectionhead">
+        <div>
+          <h2>Join UKFRS</h2>
+          <p>Structured intake process. Replace requirements and links with your real recruitment workflow.</p>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="card">
+          <span class="tag">Step 1</span>
+          <h3>Apply</h3>
+          <p>Submit an application with availability, experience and motivation.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Step 2</span>
+          <h3>Interview & onboarding</h3>
+          <p>Short interview, comms check, and orientation to standards and SOPs.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Step 3</span>
+          <h3>Academy → Probation → Sign-off</h3>
+          <p>Core training, supervised incidents, competence checklist and final approval.</p>
+        </div>
+      </div>
+
+      <div style="height:14px"></div>
+
+      <div class="split">
+        <div class="panel">
+          <h3>Requirements</h3>
+          <ul>
+            <li>Working microphone and clear radio discipline</li>
+            <li>Professional conduct and teamwork</li>
+            <li>Willingness to learn procedures and accept feedback</li>
+            <li>Minimum activity: set your hours/expectations</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Application link</h3>
+          <p style="margin:0; color:var(--muted); font-size:14px;">
+            Replace the button below with your Discord invite, forum, or application form.
+          </p>
+          <div style="height:12px"></div>
+          <a class="btn primary" href="https://discord.com/" target="_blank" rel="noreferrer" style="width:100%; text-align:center;">Open UKFRS Discord</a>
+          <p class="formnote">Tip: Use a Google Form for applications and link it here.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" aria-label="Contact">
+    <div class="wrap">
+      <div class="sectionhead">
+        <div>
+          <h2>Contact</h2>
+          <p>For general enquiries, recruitment, partnerships, and service coordination.</p>
+        </div>
+      </div>
+
+      <div class="contactgrid">
+        <div class="contactbox">
+          <h3 style="margin:0 0 10px;">Contact details</h3>
+          <p style="margin:0; color:var(--muted); font-size:14px;">
+            <strong>Discord:</strong> Replace with your invite link<br>
+            <strong>Email:</strong> contact@ukfrs.example (optional)<br>
+            <strong>Recruitment:</strong> recruitment@ukfrs.example (optional)
+          </p>
+          <div style="height:10px"></div>
+          <p class="formnote">
+            RP note: For emergencies in-game, use 999 / follow server dispatch procedure.
+          </p>
+        </div>
+
+        <div class="contactbox">
+          <h3 style="margin:0;">Message UKFRS</h3>
+          <form onsubmit="return fakeSubmit(event)">
+            <label for="name">Name / Callsign</label>
+            <input id="name" name="name" placeholder="e.g., Nejc (UKFRS-12)" required />
+
+            <label for="discord">Discord</label>
+            <input id="discord" name="discord" placeholder="e.g., user#1234" required />
+
+            <label for="msg">Message</label>
+            <textarea id="msg" name="msg" placeholder="How can we help?" required></textarea>
+
+            <div style="height:12px"></div>
+            <button class="btn primary" type="submit" style="width:100%;">Send message</button>
+            <p class="formnote">This demo form does not send emails. Connect it to a form service or Wix/Velo backend.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footwrap">
+      <div>
+        <h4>UKFRS</h4>
+        <p class="small">
+          United Kingdom Fire and Rescue Service — FiveM roleplay organisation focused on professional response,
+          training and community safety.
+        </p>
+      </div>
+
+      <div>
+        <h4>Quick links</h4>
+        <p class="small" style="display:grid; gap:8px; margin:0;">
+          <a href="#about">About</a>
+          <a href="#operations">Operations</a>
+          <a href="#fleet">Fleet</a>
+          <a href="#join">Join</a>
+          <a href="#news">News</a>
+        </p>
+      </div>
+
+      <div>
+        <h4>Contact</h4>
+        <p class="small" style="margin:0; display:grid; gap:8px;">
+          <a href="https://discord.com/" target="_blank" rel="noreferrer">Discord</a>
+          <a href="#contact">Contact form</a>
+          <span>RP Emergency: 999</span>
+        </p>
+      </div>
+    </div>
+    <div class="footbar">© <span id="y"></span> UKFRS • United Kingdom Fire and Rescue Service</div>
+  </footer>
+
+  <script>
+    // demo form submit
+    function fakeSubmit(e){
+      e.preventDefault();
+      alert("Message captured (demo). Connect this form to Wix/Velo or a form service to receive submissions.");
+      e.target.reset();
+      return false;
+    }
+    document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
