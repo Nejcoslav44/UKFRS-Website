@@ -3,453 +3,631 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UKFRS – United Kingdom Fire and Rescue Service</title>
-  <meta name="description" content="UKFRS – professional fire and rescue roleplay organisation within FiveM. Operations, fleet, training, recruitment and updates." />
+  <title>FB Callsign Generator</title>
   <style>
-    :root{
-      --bg:#ffffff;
-      --bg2:#f6f7f9;
-      --text:#111827;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-      --brand:#b91c1c;
-      --brand2:#0f172a;
-      --card:#ffffff;
-      --shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-      --radius: 10px;
-      --max: 1150px;
+    :root {
+      --bg: #0b1020;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.09);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.72);
+      --border: rgba(255,255,255,0.16);
+      --good: #34d399;
+      --bad: #fb7185;
+      --warn: #fbbf24;
+      --btn: rgba(255,255,255,0.10);
+      --btnHover: rgba(255,255,255,0.16);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color:var(--text);
-      background:var(--bg);
-      line-height:1.55;
-    }
-    a{color:inherit; text-decoration:none}
-    .topbar{
-      position:sticky; top:0; z-index:1000;
-      background:var(--brand2);
-      border-bottom:1px solid rgba(255,255,255,0.08);
-    }
-    .navwrap{
-      max-width:var(--max); margin:0 auto; padding:12px 16px;
-      display:flex; align-items:center; gap:16px;
-    }
-    .brand{display:flex; align-items:center; gap:10px; min-width:220px;}
-    .logo{
-      width:38px;height:38px;border-radius:8px;background:rgba(255,255,255,0.12);
-      display:grid;place-items:center;font-weight:800;color:#fff;letter-spacing:0.5px;
-    }
-    .brandtext{color:#fff; line-height:1.1;}
-    .brandtext strong{display:block; font-size:14px; letter-spacing:0.6px;}
-    .brandtext span{display:block; font-size:12px; color:rgba(255,255,255,0.70);}
-    .nav{display:flex; flex-wrap:wrap; gap:10px; margin-left:auto; align-items:center;}
-    .nav a{color:rgba(255,255,255,0.92); font-size:13px; padding:8px 10px; border-radius:8px;}
-    .nav a:hover{background:rgba(255,255,255,0.08)}
-    .cta{background:var(--brand); color:#fff !important; padding:8px 12px !important; font-weight:700;}
-    .cta:hover{filter:brightness(1.05); background:var(--brand)}
 
-    .hero{
-      position:relative; min-height:520px;
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--text);
       background:
-        linear-gradient(180deg, rgba(15,23,42,0.75), rgba(15,23,42,0.80)),
-        url("https://images.unsplash.com/photo-1614767672145-6b6f5a7efa7b?auto=format&fit=crop&w=2000&q=70");
-      background-size:cover; background-position:center; color:#fff;
-      border-bottom:1px solid rgba(15,23,42,0.10);
+        radial-gradient(1200px 600px at 20% 10%, rgba(59,130,246,0.22), transparent 60%),
+        radial-gradient(900px 500px at 85% 35%, rgba(168,85,247,0.18), transparent 60%),
+        radial-gradient(900px 500px at 55% 95%, rgba(34,197,94,0.12), transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px;
     }
-    .herowrap{max-width:var(--max); margin:0 auto; padding:84px 16px 60px;}
-    .kicker{
-      display:inline-flex; gap:8px; align-items:center; padding:6px 10px;
-      border-radius:999px; background:rgba(255,255,255,0.10);
-      border:1px solid rgba(255,255,255,0.12); font-size:12px; color:rgba(255,255,255,0.90);
-    }
-    .kicker .dot{
-      width:8px;height:8px;border-radius:99px;background:var(--brand);
-      box-shadow:0 0 0 3px rgba(185,28,28,0.25);
-    }
-    h1{margin:14px 0 8px; font-size:44px; line-height:1.1; letter-spacing:-0.6px;}
-    .subtitle{max-width:680px; font-size:16px; color:rgba(255,255,255,0.85); margin:0 0 22px;}
-    .herobtns{display:flex; gap:12px; flex-wrap:wrap;}
-    .btn{
-      display:inline-flex; align-items:center; justify-content:center; gap:10px;
-      border-radius:10px; padding:12px 14px; font-size:14px; font-weight:700;
-      border:1px solid transparent; cursor:pointer; user-select:none;
-    }
-    .btn.primary{background:var(--brand); color:#fff; box-shadow:0 10px 24px rgba(185, 28, 28, 0.25);}
-    .btn.primary:hover{filter:brightness(1.05)}
-    .btn.secondary{background:rgba(255,255,255,0.10); color:#fff; border-color:rgba(255,255,255,0.16);}
-    .btn.secondary:hover{background:rgba(255,255,255,0.14)}
 
-    section{padding:56px 0}
-    .wrap{max-width:var(--max); margin:0 auto; padding:0 16px}
-    .sectionhead{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px;}
-    .sectionhead h2{margin:0; font-size:26px; letter-spacing:-0.3px;}
-    .sectionhead p{margin:0; color:var(--muted); max-width:640px; font-size:14px;}
+    .wrap {
+      width: min(980px, 100%);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
 
-    .grid{display:grid; gap:14px;}
-    .grid.cols-4{grid-template-columns:repeat(4, 1fr)}
-    .grid.cols-3{grid-template-columns:repeat(3, 1fr)}
-    .grid.cols-2{grid-template-columns:repeat(2, 1fr)}
+    header {
+      padding: 18px 18px 4px;
+    }
 
-    .card{
-      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-      box-shadow:var(--shadow); padding:16px;
+    h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      letter-spacing: 0.2px;
     }
-    .card .tag{
-      display:inline-block; font-size:12px; color:var(--brand); font-weight:800;
-      letter-spacing:0.3px; margin-bottom:6px; text-transform:uppercase;
+    p.sub {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.35;
     }
-    .card h3{margin:0 0 8px; font-size:16px; letter-spacing:-0.2px;}
-    .card p{margin:0; color:var(--muted); font-size:13px;}
-    .card a.more{display:inline-block; margin-top:12px; font-weight:800; font-size:13px; color:var(--brand2);}
-    .card a.more:hover{color:var(--brand)}
 
-    /* Gallery */
-    .gallerybar{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-      margin-bottom:14px;
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
     }
-    .note{font-size:12px; color:var(--muted)}
-    .status{font-size:12px; color:var(--muted)}
-    .gallerygrid{
-      display:grid;
-      grid-template-columns:repeat(4, 1fr);
-      gap:12px;
-    }
-    .gitem{
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      overflow:hidden;
-      background:#fff;
-      box-shadow:var(--shadow);
-    }
-    .gitem img{width:100%; height:190px; object-fit:cover;}
-    .gcap{
-      padding:10px 12px;
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .gcap a{font-weight:800; color:var(--brand2)}
-    .gcap a:hover{color:var(--brand)}
 
-    footer{background:var(--brand2); color:rgba(255,255,255,0.88); border-top:1px solid rgba(255,255,255,0.08);}
-    .footwrap{
-      max-width:var(--max); margin:0 auto; padding:26px 16px;
-      display:grid; grid-template-columns: 1.2fr 1fr 1fr; gap:16px;
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
     }
-    footer h4{margin:0 0 10px; color:#fff}
-    footer a{color:rgba(255,255,255,0.85)}
-    footer a:hover{color:#fff}
-    .small{font-size:12px; color:rgba(255,255,255,0.70)}
-    .footbar{border-top:1px solid rgba(255,255,255,0.08); padding:12px 16px; text-align:center; font-size:12px; color:rgba(255,255,255,0.70);}
 
-    @media (max-width: 980px){
-      .grid.cols-4{grid-template-columns:repeat(2, 1fr)}
-      .grid.cols-3{grid-template-columns:repeat(2, 1fr)}
-      .grid.cols-2{grid-template-columns:1fr}
-      .gallerygrid{grid-template-columns:repeat(2, 1fr)}
-      h1{font-size:36px}
-      .footwrap{grid-template-columns:1fr}
+    .card {
+      background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
     }
-    @media (max-width: 620px){
-      .navwrap{flex-wrap:wrap}
-      .brand{min-width:auto}
-      .gallerygrid{grid-template-columns:1fr}
-      .hero{min-height:520px}
+
+    .card .inner {
+      padding: 16px;
     }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"]{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22);
+      color: var(--text);
+      outline: none;
+      font-size: 15px;
+    }
+    input[type="text"]:focus{
+      border-color: rgba(255,255,255,0.28);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: var(--btn);
+      color: var(--text);
+      padding: 11px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      transition: background .12s ease, transform .06s ease;
+    }
+    button:hover { background: var(--btnHover); }
+    button:active { transform: translateY(1px); }
+    button.primary {
+      border-color: rgba(59,130,246,0.42);
+      background: rgba(59,130,246,0.22);
+    }
+    button.primary:hover { background: rgba(59,130,246,0.28); }
+
+    .status {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.3;
+    }
+    .status.good { border-color: rgba(52,211,153,0.35); color: rgba(209,250,229,0.95); }
+    .status.bad  { border-color: rgba(251,113,133,0.35); color: rgba(255,228,230,0.95); }
+    .status.warn { border-color: rgba(251,191,36,0.35);  color: rgba(254,243,199,0.95); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      color: var(--muted);
+      font-size: 13px;
+      user-select: none;
+    }
+    .mono { font-family: var(--mono); }
+
+    .listWrap {
+      padding: 0;
+    }
+
+    .listHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.12);
+    }
+    .listHead h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.2px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      font-size: 14px;
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    tbody tr:hover td {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .footerNote {
+      padding: 10px 16px 16px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.35;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12.5px;
+      outline: none;
+      resize: vertical;
+    }
+
+    .modalBg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .modal {
+      width: min(820px, 100%);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(12,16,32,0.96);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .modalHead {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+    }
+    .modalHead strong { font-size: 14px; }
+    .modalBody { padding: 14px 16px 16px; }
   </style>
 </head>
 
 <body>
-  <header class="topbar">
-    <div class="navwrap">
-      <a class="brand" href="#home" aria-label="UKFRS Home">
-        <div class="logo">UK</div>
-        <div class="brandtext">
-          <strong>UKFRS</strong>
-          <span>United Kingdom Fire and Rescue Service</span>
-        </div>
-      </a>
-
-      <nav class="nav" aria-label="Primary navigation">
-        <a href="#about">About</a>
-        <a href="#news">News</a>
-        <a href="#operations">Operations</a>
-        <a href="#fleet">Fleet</a>
-        <a href="#join">Join</a>
-        <a href="#gallery" class="cta">Gallery</a>
-      </nav>
-    </div>
-  </header>
-
-  <main id="home" class="hero">
-    <div class="herowrap">
-      <div class="kicker"><span class="dot"></span> Operational readiness • Structured training • Professional comms</div>
-      <h1>UKFRS – United Kingdom Fire and Rescue Service</h1>
-      <p class="subtitle">
-        A FiveM fire and rescue organisation focused on realism, disciplined incident command, and consistent standards.
+  <div class="wrap">
+    <header>
+      <h1>FB Callsign Generator</h1>
+      <p class="sub">
+        Enter a name → click <b>Generate</b> → it assigns the next callsign starting at
+        <span class="mono">FB-001</span> and adds it to the list. Duplicate names are blocked.
       </p>
-      <div class="herobtns">
-        <a class="btn primary" href="#join">Join UKFRS</a>
-        <a class="btn secondary" href="#gallery">View Gallery</a>
-      </div>
-    </div>
-  </main>
+    </header>
 
-  <section aria-label="Highlights">
-    <div class="wrap">
-      <div class="grid cols-4">
-        <div class="card">
-          <span class="tag">Recruitment</span>
-          <h3>Join a structured service</h3>
-          <p>Clear ranks, training pipeline, probation and competence sign-off.</p>
-          <a class="more" href="#join">View recruitment →</a>
-        </div>
-        <div class="card">
-          <span class="tag">Fleet</span>
-          <h3>Appliances & specialist units</h3>
-          <p>Catalogue-style fleet pages with roles, equipment and station assignment.</p>
-          <a class="more" href="#fleet">Explore fleet →</a>
-        </div>
-        <div class="card">
-          <span class="tag">Operations</span>
-          <h3>Professional incident response</h3>
-          <p>Fire, RTC, rescue/USAR, HazMat, water response and safety work.</p>
-          <a class="more" href="#operations">See operations →</a>
-        </div>
-        <div class="card">
-          <span class="tag">Gallery</span>
-          <h3>Operational photos</h3>
-          <p>Members can upload JPG images that display instantly for everyone.</p>
-          <a class="more" href="#gallery">Open gallery →</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="about" style="background:var(--bg2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
-    <div class="wrap">
-      <div class="sectionhead">
-        <div>
-          <h2>About UKFRS</h2>
-          <p>UK-style procedures adapted for server rules and roleplay needs.</p>
-        </div>
-      </div>
-      <div class="grid cols-3">
-        <div class="card"><span class="tag">Mission</span><h3>Reliable response</h3><p>Professional incident management and consistent standards.</p></div>
-        <div class="card"><span class="tag">Training</span><h3>Structured pathway</h3><p>Academy → probation → competence sign-off.</p></div>
-        <div class="card"><span class="tag">Community</span><h3>Safety culture</h3><p>Prevention and education to improve roleplay quality.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="news">
-    <div class="wrap">
-      <div class="sectionhead">
-        <div>
-          <h2>Latest News & Updates</h2>
-          <p>Replace these placeholders with your real posts later (or I can add a proper blog page).</p>
-        </div>
-      </div>
-      <div class="grid cols-3">
-        <div class="card"><span class="tag">Training</span><h3>BA drills</h3><p>Entry control, comms discipline, debrief learning points.</p></div>
-        <div class="card"><span class="tag">Incident</span><h3>RTC response</h3><p>Stabilization, casualty access, extrication support.</p></div>
-        <div class="card"><span class="tag">Announcement</span><h3>Recruitment open</h3><p>New intake for probationary firefighters.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="operations" style="background:var(--bg2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
-    <div class="wrap">
-      <div class="sectionhead">
-        <div>
-          <h2>Operations</h2>
-          <p>Core response areas delivered through clear command and safe systems of work.</p>
-        </div>
-      </div>
-      <div class="grid cols-3">
-        <div class="card"><span class="tag">Fire</span><h3>Firefighting & BA</h3><p>Initial attendance, water supply, BA operations, overhaul.</p></div>
-        <div class="card"><span class="tag">RTC</span><h3>Road Traffic Collisions</h3><p>Scene safety, stabilization, casualty access and handover.</p></div>
-        <div class="card"><span class="tag">HazMat</span><h3>Hazardous Materials</h3><p>Zoning, PPE selection and decontamination.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="fleet">
-    <div class="wrap">
-      <div class="sectionhead">
-        <div>
-          <h2>Fleet & Equipment</h2>
-          <p>Replace these entries with your real fleet list.</p>
-        </div>
-      </div>
-      <div class="grid cols-2">
-        <div class="card"><span class="tag">Appliance</span><h3>Pump</h3><p>First attendance fire and rescue appliance.</p></div>
-        <div class="card"><span class="tag">Specialist</span><h3>Rescue</h3><p>RTC and technical rescue support unit.</p></div>
-        <div class="card"><span class="tag">Specialist</span><h3>Hazmat</h3></p>Respond to incidents with hazardous materials.</p></div>
-        <div class="card"><span class="tag">Search and rescue</span><h3>USAR and rural</h3></p>Respond to incidents that are in rural areas and assist in search and rescues.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="join" style="background:var(--bg2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
-    <div class="wrap">
-      <div class="sectionhead">
-        <div>
-          <h2>Join UKFRS</h2>
-          <p>Replace the Discord/application link with your real endpoint.</p>
-        </div>
-      </div>
-      <div class="grid cols-3">
-        <div class="card"><span class="tag">Step 1</span><h3>Apply</h3><p>Submit an application with availability and experience.</p></div>
-        <div class="card"><span class="tag">Step 2</span><h3>Onboarding</h3><p>Interview.</p></div>
-        <div class="card"><span class="tag">Step 3</span><h3>Academy</h3><p>probation → If successful a slot in the command team.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Gallery -->
-  <section id="gallery" aria-label="Gallery">
-    <div class="wrap">
-      <div class="sectionhead">
-        <div>
-          <h2>Gallery</h2>
-          <p>Members can upload JPG images. Uploaded photos display to all visitors.</p>
-        </div>
-      </div>
-
-      <div class="gallerybar">
-        <input id="fileInput" type="file" accept="image/jpeg" style="display:none" />
-        <button class="btn primary" id="addBtn" type="button">Add JPG</button>
-        <div class="status" id="status">Ready.</div>
-      </div>
-
-      <div class="gallerygrid" id="galleryGrid" aria-live="polite"></div>
-    </div>
-  </section>
-
-  <footer>
-    <div class="footwrap">
-      <div>
-        <h4>UKFRS</h4>
-        <p class="small">United Kingdom Fire and Rescue Service — FiveM roleplay organisation focused on professional response, training and community safety.</p>
-      </div>
-      <div>
-        <h4>Quick links</h4>
-        <p class="small" style="display:grid; gap:8px; margin:0;">
-          <a href="#about">About</a>
-          <a href="#operations">Operations</a>
-          <a href="#fleet">Fleet</a>
-          <a href="#join">Join</a>
-          <a href="#gallery">Gallery</a>
-        </p>
-      </div>
-      <div>
-        <h4>RP Emergency</h4>
-        <p class="small" style="margin:0;">Use 999 / follow server dispatch procedures.</p>
-      </div>
-    </div>
-    <div class="footbar">© <span id="y"></span> UKFRS • United Kingdom Fire and Rescue Service</div>
-  </footer>
-
-  <!-- Firebase (v10 modular) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
-
-    // 1) PASTE YOUR FIREBASE CONFIG HERE
-    const firebaseConfig = {
-      apiKey: "PASTE",
-      authDomain: "PASTE",
-      projectId: "PASTE",
-      storageBucket: "PASTE",
-      messagingSenderId: "PASTE",
-      appId: "PASTE"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
-    const statusEl = document.getElementById("status");
-    const fileInput = document.getElementById("fileInput");
-    const addBtn = document.getElementById("addBtn");
-    const grid = document.getElementById("galleryGrid");
-
-    function setStatus(msg){ statusEl.textContent = msg; }
-
-    // Live gallery feed
-    const q = query(collection(db, "gallery"), orderBy("createdAt", "desc"));
-    onSnapshot(q, (snap) => {
-      grid.innerHTML = "";
-      snap.forEach((doc) => {
-        const data = doc.data();
-        const item = document.createElement("div");
-        item.className = "gitem";
-        item.innerHTML = `
-          <img src="${data.url}" alt="UKFRS gallery image" loading="lazy">
-          <div class="gcap">
-            <span>${data.name || "image.jpg"}</span>
-            <a href="${data.url}" target="_blank" rel="noreferrer">Open</a>
+    <div class="grid">
+      <!-- Generator -->
+      <section class="card">
+        <div class="inner">
+          <div class="row" style="justify-content: space-between;">
+            <div class="pill">
+              Next callsign:
+              <span id="nextCallsign" class="mono">FB-001</span>
+            </div>
+            <div class="pill">
+              Total in list:
+              <span id="totalCount" class="mono">0</span>
+            </div>
           </div>
-        `;
-        grid.appendChild(item);
+
+          <div style="margin-top: 14px;">
+            <label for="nameInput">Name</label>
+            <input id="nameInput" type="text" autocomplete="off" placeholder="e.g., Nejc Bergant" />
+          </div>
+
+          <div class="row" style="margin-top: 12px;">
+            <button class="primary" id="generateBtn">Generate</button>
+            <button id="copyLatestBtn" title="Copies the most recently generated callsign">Copy latest callsign</button>
+          </div>
+
+          <div id="statusBox" class="status" aria-live="polite">
+            Ready.
+          </div>
+
+          <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 14px 0;" />
+
+          <div class="row" style="justify-content: space-between;">
+            <div class="pill">
+              Storage: <span class="mono">localStorage</span>
+            </div>
+            <div class="actions">
+              <button id="exportBtn">Export JSON</button>
+              <button id="importBtn">Import JSON</button>
+              <button id="clearBtn" title="Clears the entire list and resets callsign counter">Clear</button>
+            </div>
+          </div>
+
+          <p class="footerNote">
+            Notes: Name matching is case-insensitive and ignores extra spaces. If you want strict matching, tell me and I’ll adjust it.
+          </p>
+        </div>
+      </section>
+
+      <!-- List -->
+      <section class="card listWrap">
+        <div class="listHead">
+          <h2>Assigned Callsigns</h2>
+          <div class="pill">
+            Sort:
+            <span class="mono">FB-###</span>
+          </div>
+        </div>
+
+        <div style="max-height: 420px; overflow: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 120px;">Callsign</th>
+                <th>Name</th>
+              </tr>
+            </thead>
+            <tbody id="listBody">
+              <!-- rows injected -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="footerNote">
+          Tip: If you’re hosting on GitHub Pages, this works as-is. LocalStorage is per-browser/device.
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Modal for Import/Export -->
+  <div id="modalBg" class="modalBg" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modalHead">
+        <strong id="modalTitle">Export / Import</strong>
+        <button id="closeModalBtn">Close</button>
+      </div>
+      <div class="modalBody">
+        <div id="modalHint" style="color: rgba(255,255,255,0.75); font-size: 13px; margin-bottom: 10px;"></div>
+        <textarea id="modalText" spellcheck="false"></textarea>
+        <div class="row" style="margin-top: 10px; justify-content: flex-end;">
+          <button id="modalPrimaryBtn" class="primary">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== Storage keys ======
+    const STORAGE_KEY = "fb_callsign_list_v1";
+    const COUNTER_KEY = "fb_callsign_counter_v1";
+    const LATEST_KEY  = "fb_callsign_latest_v1";
+
+    // ====== State ======
+    /** @type {{name: string, callsign: string}[]} */
+    let entries = [];
+    let nextNumber = 1; // FB-001 => 1
+
+    // ====== Helpers ======
+    function normalizeName(raw) {
+      return raw.trim().replace(/\s+/g, " ");
+    }
+    function normalizeNameKey(raw) {
+      return normalizeName(raw).toLowerCase();
+    }
+    function pad3(n) {
+      const s = String(n);
+      return s.length >= 3 ? s : "0".repeat(3 - s.length) + s;
+    }
+    function toCallsign(n) {
+      return `FB-${pad3(n)}`;
+    }
+
+    function setStatus(message, kind = "neutral") {
+      const box = document.getElementById("statusBox");
+      box.textContent = message;
+      box.classList.remove("good", "bad", "warn");
+      if (kind === "good") box.classList.add("good");
+      if (kind === "bad") box.classList.add("bad");
+      if (kind === "warn") box.classList.add("warn");
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+      localStorage.setItem(COUNTER_KEY, String(nextNumber));
+    }
+
+    function loadState() {
+      try {
+        const rawEntries = localStorage.getItem(STORAGE_KEY);
+        const rawCounter = localStorage.getItem(COUNTER_KEY);
+
+        entries = rawEntries ? JSON.parse(rawEntries) : [];
+        if (!Array.isArray(entries)) entries = [];
+
+        const parsedCounter = rawCounter ? parseInt(rawCounter, 10) : NaN;
+        nextNumber = Number.isFinite(parsedCounter) && parsedCounter >= 1 ? parsedCounter : 1;
+      } catch {
+        entries = [];
+        nextNumber = 1;
+      }
+    }
+
+    function render() {
+      document.getElementById("nextCallsign").textContent = toCallsign(nextNumber);
+      document.getElementById("totalCount").textContent = String(entries.length);
+
+      const tbody = document.getElementById("listBody");
+      tbody.innerHTML = "";
+
+      // Sort by callsign number ascending
+      const sorted = [...entries].sort((a, b) => {
+        const na = parseInt(a.callsign.split("-")[1], 10);
+        const nb = parseInt(b.callsign.split("-")[1], 10);
+        return na - nb;
       });
+
+      for (const e of sorted) {
+        const tr = document.createElement("tr");
+
+        const tdCall = document.createElement("td");
+        tdCall.textContent = e.callsign;
+        tdCall.className = "mono";
+
+        const tdName = document.createElement("td");
+        tdName.textContent = e.name;
+
+        tr.appendChild(tdCall);
+        tr.appendChild(tdName);
+        tbody.appendChild(tr);
+      }
+    }
+
+    function nameExists(nameRaw) {
+      const key = normalizeNameKey(nameRaw);
+      return entries.some(e => normalizeNameKey(e.name) === key);
+    }
+
+    // ====== Modal (Import/Export) ======
+    const modalBg = document.getElementById("modalBg");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalHint = document.getElementById("modalHint");
+    const modalText = document.getElementById("modalText");
+    const modalPrimaryBtn = document.getElementById("modalPrimaryBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    let modalMode = "export"; // "export" | "import"
+
+    function openModal(mode) {
+      modalMode = mode;
+      modalText.value = "";
+      modalText.readOnly = (mode === "export");
+
+      if (mode === "export") {
+        modalTitle.textContent = "Export JSON";
+        modalHint.textContent = "Copy this JSON somewhere safe. You can import it later on another device/browser.";
+        const payload = {
+          version: 1,
+          nextNumber,
+          entries
+        };
+        modalText.value = JSON.stringify(payload, null, 2);
+        modalPrimaryBtn.textContent = "Copy to clipboard";
+      } else {
+        modalTitle.textContent = "Import JSON";
+        modalHint.textContent = "Paste previously exported JSON here. This will replace your current list.";
+        modalPrimaryBtn.textContent = "Import";
+      }
+
+      modalBg.style.display = "flex";
+      setTimeout(() => modalText.focus(), 0);
+    }
+
+    function closeModal() {
+      modalBg.style.display = "none";
+    }
+
+    closeModalBtn.addEventListener("click", closeModal);
+    modalBg.addEventListener("click", (e) => {
+      if (e.target === modalBg) closeModal();
+    });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalBg.style.display === "flex") closeModal();
     });
 
-    addBtn.addEventListener("click", () => fileInput.click());
-
-    fileInput.addEventListener("change", async () => {
-      const file = fileInput.files?.[0];
-      fileInput.value = "";
-
-      if (!file) return;
-
-      // Basic validation
-      if (file.type !== "image/jpeg") {
-        setStatus("Only .jpg/.jpeg files allowed.");
-        return;
-      }
-      if (file.size > 6 * 1024 * 1024) {
-        setStatus("File too large. Max 6 MB.");
+    modalPrimaryBtn.addEventListener("click", async () => {
+      if (modalMode === "export") {
+        try {
+          await navigator.clipboard.writeText(modalText.value);
+          setStatus("Export copied to clipboard.", "good");
+          closeModal();
+        } catch {
+          setStatus("Could not access clipboard. Manually copy the JSON from the modal.", "warn");
+        }
         return;
       }
 
+      // import
       try {
-        setStatus("Uploading...");
-        addBtn.disabled = true;
+        const payload = JSON.parse(modalText.value);
+        if (!payload || typeof payload !== "object") throw new Error("Invalid payload");
 
-        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const path = `gallery/${Date.now()}_${safeName}`;
-        const storageRef = ref(storage, path);
+        const importedEntries = payload.entries;
+        const importedNext = payload.nextNumber;
 
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
+        if (!Array.isArray(importedEntries)) throw new Error("entries must be an array");
+        if (!Number.isFinite(importedNext) || importedNext < 1) throw new Error("nextNumber must be >= 1");
 
-        await addDoc(collection(db, "gallery"), {
-          url,
-          name: safeName,
-          createdAt: serverTimestamp()
+        // Basic shape validation
+        for (const item of importedEntries) {
+          if (!item || typeof item !== "object") throw new Error("Bad entry");
+          if (typeof item.name !== "string" || typeof item.callsign !== "string") throw new Error("Bad entry fields");
+          if (!/^FB-\d{3,}$/.test(item.callsign)) throw new Error("Bad callsign format");
+        }
+
+        entries = importedEntries.map(e => ({
+          name: normalizeName(e.name),
+          callsign: e.callsign
+        }));
+
+        // Remove duplicate names on import (keep first occurrence)
+        const seen = new Set();
+        entries = entries.filter(e => {
+          const k = normalizeNameKey(e.name);
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
         });
 
-        setStatus("Uploaded.");
+        nextNumber = importedNext;
+        saveState();
+        render();
+        setStatus("Imported successfully.", "good");
+        closeModal();
       } catch (err) {
-        console.error(err);
-        setStatus("Upload failed. Check Firebase rules/config.");
-      } finally {
-        addBtn.disabled = false;
+        setStatus("Import failed: invalid JSON or format.", "bad");
       }
     });
 
-    document.getElementById("y").textContent = new Date().getFullYear();
+    // ====== Main actions ======
+    document.getElementById("generateBtn").addEventListener("click", () => {
+      const input = document.getElementById("nameInput");
+      const raw = input.value;
+      const name = normalizeName(raw);
+
+      if (!name) {
+        setStatus("Enter a name first.", "warn");
+        input.focus();
+        return;
+      }
+
+      if (nameExists(name)) {
+        setStatus("Name already in list", "bad");
+        return;
+      }
+
+      const callsign = toCallsign(nextNumber);
+      entries.push({ name, callsign });
+      localStorage.setItem(LATEST_KEY, callsign);
+
+      nextNumber += 1;
+      saveState();
+      render();
+
+      setStatus(`Assigned ${callsign} to "${name}".`, "good");
+      input.value = "";
+      input.focus();
+    });
+
+    document.getElementById("nameInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        document.getElementById("generateBtn").click();
+      }
+    });
+
+    document.getElementById("copyLatestBtn").addEventListener("click", async () => {
+      const latest = localStorage.getItem(LATEST_KEY);
+      if (!latest) {
+        setStatus("No callsign generated yet.", "warn");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(latest);
+        setStatus(`Copied ${latest} to clipboard.`, "good");
+      } catch {
+        setStatus("Could not access clipboard. Copy manually from the list.", "warn");
+      }
+    });
+
+    document.getElementById("exportBtn").addEventListener("click", () => openModal("export"));
+    document.getElementById("importBtn").addEventListener("click", () => openModal("import"));
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      const ok = confirm("Clear the entire list and reset callsign counter to FB-001?");
+      if (!ok) return;
+
+      entries = [];
+      nextNumber = 1;
+      localStorage.removeItem(LATEST_KEY);
+      saveState();
+      render();
+      setStatus("Cleared. Counter reset to FB-001.", "good");
+    });
+
+    // ====== Init ======
+    loadState();
+    render();
   </script>
 </body>
 </html>
+
 
