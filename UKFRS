@@ -8,13 +8,9 @@
     :root {
       --bg: #0b1020;
       --card: rgba(255,255,255,0.06);
-      --card2: rgba(255,255,255,0.09);
       --text: rgba(255,255,255,0.92);
       --muted: rgba(255,255,255,0.72);
       --border: rgba(255,255,255,0.16);
-      --good: #34d399;
-      --bad: #fb7185;
-      --warn: #fbbf24;
       --btn: rgba(255,255,255,0.10);
       --btnHover: rgba(255,255,255,0.16);
       --shadow: 0 10px 30px rgba(0,0,0,0.35);
@@ -46,20 +42,10 @@
       gap: 16px;
     }
 
-    header {
-      padding: 18px 18px 4px;
-    }
+    header { padding: 18px 18px 4px; }
 
-    h1 {
-      margin: 0 0 6px;
-      font-size: 26px;
-      letter-spacing: 0.2px;
-    }
-    p.sub {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.35;
-    }
+    h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.2px; }
+    p.sub { margin: 0; color: var(--muted); line-height: 1.35; }
 
     .grid {
       display: grid;
@@ -67,9 +53,7 @@
       gap: 16px;
     }
 
-    @media (max-width: 860px) {
-      .grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
 
     .card {
       background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.03));
@@ -79,9 +63,7 @@
       overflow: hidden;
     }
 
-    .card .inner {
-      padding: 16px;
-    }
+    .card .inner { padding: 16px; }
 
     .row {
       display: flex;
@@ -121,7 +103,7 @@
       cursor: pointer;
       font-weight: 600;
       letter-spacing: 0.2px;
-      transition: background .12s ease, transform .06s ease;
+      transition: background .12s ease, transform .06s ease, opacity .12s ease;
     }
     button:hover { background: var(--btnHover); }
     button:active { transform: translateY(1px); }
@@ -130,6 +112,10 @@
       background: rgba(59,130,246,0.22);
     }
     button.primary:hover { background: rgba(59,130,246,0.28); }
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
 
     .status {
       margin-top: 10px;
@@ -159,9 +145,7 @@
     }
     .mono { font-family: var(--mono); }
 
-    .listWrap {
-      padding: 0;
-    }
+    .listWrap { padding: 0; }
 
     .listHead {
       display: flex;
@@ -172,16 +156,9 @@
       border-bottom: 1px solid var(--border);
       background: rgba(0,0,0,0.12);
     }
-    .listHead h2 {
-      margin: 0;
-      font-size: 16px;
-      letter-spacing: 0.2px;
-    }
+    .listHead h2 { margin: 0; font-size: 16px; letter-spacing: 0.2px; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    table { width: 100%; border-collapse: collapse; }
     th, td {
       text-align: left;
       padding: 10px 16px;
@@ -196,9 +173,7 @@
       top: 0;
       z-index: 1;
     }
-    tbody tr:hover td {
-      background: rgba(255,255,255,0.04);
-    }
+    tbody tr:hover td { background: rgba(255,255,255,0.04); }
 
     .actions {
       display: flex;
@@ -287,7 +262,7 @@
 
           <div style="margin-top: 14px;">
             <label for="nameInput">Name</label>
-            <input id="nameInput" type="text" autocomplete="off" placeholder="e.g., Nejcoslav" />
+            <input id="nameInput" type="text" autocomplete="off" placeholder="e.g., Nejc Bergant" />
           </div>
 
           <div class="row" style="margin-top: 12px;">
@@ -305,15 +280,19 @@
             <div class="pill">
               Storage: <span class="mono">localStorage</span>
             </div>
+
+            <!-- ADMIN-LOCKED ACTIONS -->
             <div class="actions">
-              <button id="exportBtn">Export JSON</button>
-              <button id="importBtn">Import JSON</button>
-              <button id="clearBtn" title="Clears the entire list and resets callsign counter">Clear</button>
+              <button id="adminBtn" title="Unlock admin actions">Admin Unlock</button>
+              <button id="exportBtn" disabled>Export JSON</button>
+              <button id="importBtn" disabled>Import JSON</button>
+              <button id="clearBtn" disabled title="Clears the entire list and resets callsign counter">Clear</button>
             </div>
           </div>
 
           <p class="footerNote">
-            Notes: Name matching is case-insensitive and ignores extra spaces. If you want strict matching, tell me and I’ll adjust it.
+            Notes: Name matching is case-insensitive and ignores extra spaces.
+            Admin lock is UI-level only (good for casual users, not real security).
           </p>
         </div>
       </section>
@@ -336,14 +315,12 @@
                 <th>Name</th>
               </tr>
             </thead>
-            <tbody id="listBody">
-              <!-- rows injected -->
-            </tbody>
+            <tbody id="listBody"></tbody>
           </table>
         </div>
 
         <div class="footerNote">
-          Displayed callsigns.
+          Tip: If you’re hosting on GitHub Pages, this works as-is. LocalStorage is per-browser/device.
         </div>
       </section>
     </div>
@@ -376,6 +353,31 @@
     /** @type {{name: string, callsign: string}[]} */
     let entries = [];
     let nextNumber = 1; // FB-001 => 1
+
+    // ====== Admin lock (UI-level only) ======
+    let isAdminUnlocked = false;
+
+    // CHANGE THIS PIN (keep in mind: anyone can still see it in view-source if they try)
+    const ADMIN_PIN = "UKFRS_command_only_yes";
+
+    function setAdminUnlocked(on) {
+      isAdminUnlocked = on;
+      document.getElementById("exportBtn").disabled = !on;
+      document.getElementById("importBtn").disabled = !on;
+      document.getElementById("clearBtn").disabled = !on;
+    }
+
+    function promptAdminUnlock() {
+      const pin = prompt("Enter admin PIN:");
+      if (pin === null) return; // cancelled
+      if (pin === ADMIN_PIN) {
+        setAdminUnlocked(true);
+        setStatus("Admin controls unlocked for this session.", "good");
+      } else {
+        setAdminUnlocked(false);
+        setStatus("Wrong PIN.", "bad");
+      }
+    }
 
     // ====== Helpers ======
     function normalizeName(raw) {
@@ -429,7 +431,6 @@
       const tbody = document.getElementById("listBody");
       tbody.innerHTML = "";
 
-      // Sort by callsign number ascending
       const sorted = [...entries].sort((a, b) => {
         const na = parseInt(a.callsign.split("-")[1], 10);
         const nb = parseInt(b.callsign.split("-")[1], 10);
@@ -475,11 +476,7 @@
       if (mode === "export") {
         modalTitle.textContent = "Export JSON";
         modalHint.textContent = "Copy this JSON somewhere safe. You can import it later on another device/browser.";
-        const payload = {
-          version: 1,
-          nextNumber,
-          entries
-        };
+        const payload = { version: 1, nextNumber, entries };
         modalText.value = JSON.stringify(payload, null, 2);
         modalPrimaryBtn.textContent = "Copy to clipboard";
       } else {
@@ -527,7 +524,6 @@
         if (!Array.isArray(importedEntries)) throw new Error("entries must be an array");
         if (!Number.isFinite(importedNext) || importedNext < 1) throw new Error("nextNumber must be >= 1");
 
-        // Basic shape validation
         for (const item of importedEntries) {
           if (!item || typeof item !== "object") throw new Error("Bad entry");
           if (typeof item.name !== "string" || typeof item.callsign !== "string") throw new Error("Bad entry fields");
@@ -539,7 +535,7 @@
           callsign: e.callsign
         }));
 
-        // Remove duplicate names on import (keep first occurrence)
+        // remove duplicate names on import (keep first)
         const seen = new Set();
         entries = entries.filter(e => {
           const k = normalizeNameKey(e.name);
@@ -553,12 +549,14 @@
         render();
         setStatus("Imported successfully.", "good");
         closeModal();
-      } catch (err) {
+      } catch {
         setStatus("Import failed: invalid JSON or format.", "bad");
       }
     });
 
     // ====== Main actions ======
+    document.getElementById("adminBtn").addEventListener("click", promptAdminUnlock);
+
     document.getElementById("generateBtn").addEventListener("click", () => {
       const input = document.getElementById("nameInput");
       const raw = input.value;
@@ -589,9 +587,7 @@
     });
 
     document.getElementById("nameInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        document.getElementById("generateBtn").click();
-      }
+      if (e.key === "Enter") document.getElementById("generateBtn").click();
     });
 
     document.getElementById("copyLatestBtn").addEventListener("click", async () => {
@@ -626,8 +622,7 @@
     // ====== Init ======
     loadState();
     render();
+    setAdminUnlocked(false); // locked by default
   </script>
 </body>
 </html>
-
-
