@@ -1,627 +1,762 @@
-<!doctype html>
+import os, textwrap, zipfile, pathlib, json, re, datetime
+base = pathlib.Path("/mnt/data/duty-hours-site")
+base.mkdir(parents=True, exist_ok=True)
+
+index_html = r"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FB Callsign Generator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Duty Hours Tracker</title>
   <style>
-    :root {
-      --bg: #0b1020;
-      --card: rgba(255,255,255,0.06);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.72);
-      --border: rgba(255,255,255,0.16);
-      --btn: rgba(255,255,255,0.10);
-      --btnHover: rgba(255,255,255,0.16);
-      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    :root{
+      --bg0:#0b1020;
+      --bg1:#0f1730;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.09);
+      --text:#e9ecf5;
+      --muted:#aeb7d3;
+      --accent:#7aa2ff;
+      --accent2:#7cffa7;
+      --danger:#ff6b6b;
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
       --radius: 18px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--sans);
-      color: var(--text);
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
       background:
-        radial-gradient(1200px 600px at 20% 10%, rgba(59,130,246,0.22), transparent 60%),
-        radial-gradient(900px 500px at 85% 35%, rgba(168,85,247,0.18), transparent 60%),
-        radial-gradient(900px 500px at 55% 95%, rgba(34,197,94,0.12), transparent 60%),
-        var(--bg);
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 28px 16px;
+        radial-gradient(1200px 600px at 20% 10%, rgba(122,162,255,.30), transparent 60%),
+        radial-gradient(900px 500px at 80% 30%, rgba(124,255,167,.18), transparent 60%),
+        radial-gradient(700px 420px at 30% 90%, rgba(255,107,107,.14), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
     }
-
-    .wrap {
-      width: min(980px, 100%);
-      display: grid;
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 42px 18px 64px;
+    }
+    .top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 18px;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .brand h1{
+      margin:0;
+      font-size: 28px;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      margin:0;
+      color:var(--muted);
+      font-size: 14px;
+      line-height:1.4;
+    }
+    .pill{
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      padding:10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--muted);
+      font-size: 13px;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .pill strong{color:var(--text); font-weight:600}
+    .grid{
+      display:grid;
       grid-template-columns: 1fr;
-      gap: 16px;
+      gap: 14px;
     }
-
-    header { padding: 18px 18px 4px; }
-
-    h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.2px; }
-    p.sub { margin: 0; color: var(--muted); line-height: 1.35; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 16px;
+    @media (min-width: 920px){
+      .grid{grid-template-columns: 1.25fr .75fr;}
     }
-
-    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-
-    .card {
-      background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.03));
-      border: 1px solid var(--border);
+    .card{
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.10);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow: hidden;
+      padding: 18px;
+      backdrop-filter: blur(10px);
     }
-
-    .card .inner { padding: 16px; }
-
-    .row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
+    .card h2{
+      margin:0 0 10px 0;
+      font-size: 16px;
+      letter-spacing:.2px;
+      color: var(--text);
     }
-
-    label {
-      display: block;
-      font-size: 13px;
+    label{
+      display:block;
       color: var(--muted);
-      margin-bottom: 6px;
+      font-size: 13px;
+      margin: 10px 0 6px;
     }
-
-    input[type="text"]{
-      width: 100%;
+    input[type="text"], input[type="password"], input[type="date"], textarea{
+      width:100%;
       padding: 12px 12px;
       border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(10,12,22,.55);
       color: var(--text);
       outline: none;
-      font-size: 15px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+      font-family: var(--sans);
+      transition: border .15s ease, transform .15s ease, background .15s ease;
     }
-    input[type="text"]:focus{
-      border-color: rgba(255,255,255,0.28);
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+    input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus, textarea:focus{
+      border-color: rgba(122,162,255,.65);
+      background: rgba(10,12,22,.70);
     }
-
-    button {
-      border: 1px solid var(--border);
-      background: var(--btn);
+    textarea{
+      min-height: 280px;
+      resize: vertical;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+    .row{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row > *{flex: 1 1 160px}
+    .btnrow{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    button{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 650;
+      letter-spacing:.2px;
+      background: linear-gradient(135deg, rgba(122,162,255,.95), rgba(124,255,167,.70));
+      color: #091023;
+      box-shadow: 0 14px 30px rgba(0,0,0,.35);
+      transition: transform .12s ease, filter .12s ease, opacity .12s ease;
+    }
+    button.secondary{
+      background: rgba(255,255,255,.08);
       color: var(--text);
-      padding: 11px 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      transition: background .12s ease, transform .06s ease, opacity .12s ease;
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: none;
     }
-    button:hover { background: var(--btnHover); }
-    button:active { transform: translateY(1px); }
-    button.primary {
-      border-color: rgba(59,130,246,0.42);
-      background: rgba(59,130,246,0.22);
+    button:active{transform: translateY(1px) scale(.99)}
+    button[disabled]{opacity:.45; cursor:not-allowed; filter:saturate(.5)}
+    .hint{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height:1.45;
     }
-    button.primary:hover { background: rgba(59,130,246,0.28); }
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .status {
+    .error{
       margin-top: 10px;
       padding: 10px 12px;
       border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.3;
-    }
-    .status.good { border-color: rgba(52,211,153,0.35); color: rgba(209,250,229,0.95); }
-    .status.bad  { border-color: rgba(251,113,133,0.35); color: rgba(255,228,230,0.95); }
-    .status.warn { border-color: rgba(251,191,36,0.35);  color: rgba(254,243,199,0.95); }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
-      color: var(--muted);
+      border: 1px solid rgba(255,107,107,.35);
+      background: rgba(255,107,107,.10);
+      color: #ffd7d7;
       font-size: 13px;
-      user-select: none;
+      display:none;
     }
-    .mono { font-family: var(--mono); }
-
-    .listWrap { padding: 0; }
-
-    .listHead {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.12);
-    }
-    .listHead h2 { margin: 0; font-size: 16px; letter-spacing: 0.2px; }
-
-    table { width: 100%; border-collapse: collapse; }
-    th, td {
-      text-align: left;
-      padding: 10px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-      font-size: 14px;
-    }
-    th {
-      color: var(--muted);
-      font-weight: 600;
-      background: rgba(0,0,0,0.08);
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    tbody tr:hover td { background: rgba(255,255,255,0.04); }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .footerNote {
-      padding: 10px 16px 16px;
-      color: var(--muted);
-      font-size: 12.5px;
-      line-height: 1.35;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 120px;
+    .ok{
+      margin-top: 10px;
       padding: 10px 12px;
       border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,0.22);
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 12.5px;
-      outline: none;
-      resize: vertical;
+      border: 1px solid rgba(124,255,167,.25);
+      background: rgba(124,255,167,.10);
+      color: #d7ffe7;
+      font-size: 13px;
+      display:none;
     }
-
-    .modalBg {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      z-index: 50;
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
     }
-    .modal {
-      width: min(820px, 100%);
-      border-radius: 18px;
-      border: 1px solid var(--border);
-      background: rgba(12,16,32,0.96);
-      box-shadow: var(--shadow);
-      overflow: hidden;
+    th, td{
+      text-align:left;
+      padding: 10px 10px;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
-    .modalHead {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
+    th{color: var(--muted); font-weight: 650;}
+    tr:last-child td{border-bottom:none;}
+    .kpi{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
     }
-    .modalHead strong { font-size: 14px; }
-    .modalBody { padding: 14px 16px 16px; }
+    .kpi .box{
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      padding: 12px;
+    }
+    .kpi .box .t{color: var(--muted); font-size: 12px}
+    .kpi .box .v{font-size: 20px; font-weight: 750; margin-top: 4px}
+    .foot{
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height:1.45;
+    }
+    .lockscreen{
+      min-height: calc(100vh - 120px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 24px 0;
+    }
+    .lockcard{
+      max-width: 520px;
+      width:100%;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:50%;
+      background: rgba(122,162,255,.9);
+      box-shadow: 0 0 0 6px rgba(122,162,255,.15);
+    }
+    .hidden{display:none !important;}
   </style>
 </head>
-
 <body>
   <div class="wrap">
-    <header>
-      <h1>FB Callsign Generator</h1>
-      <p class="sub">
-        Enter a name → click <b>Generate</b> → it assigns the next callsign starting at
-        <span class="mono">FB-001</span> and adds it to the list. Duplicate names are blocked.
-      </p>
-    </header>
-
-    <div class="grid">
-      <!-- Generator -->
-      <section class="card">
-        <div class="inner">
-          <div class="row" style="justify-content: space-between;">
-            <div class="pill">
-              Next callsign:
-              <span id="nextCallsign" class="mono">FB-001</span>
-            </div>
-            <div class="pill">
-              Total in list:
-              <span id="totalCount" class="mono">0</span>
-            </div>
+    <!-- LOCK SCREEN -->
+    <div id="lockScreen" class="lockscreen">
+      <div class="card lockcard">
+        <div class="badge"><span class="dot"></span><span>Enter admin key to continue</span></div>
+        <div class="top" style="margin:0 0 10px 0;">
+          <div class="brand">
+            <h1>Duty Hours Tracker</h1>
+            <p>Paste Duty Logger exports, filter by date, and calculate hours.</p>
           </div>
-
-          <div style="margin-top: 14px;">
-            <label for="nameInput">Name</label>
-            <input id="nameInput" type="text" autocomplete="off" placeholder="e.g., Nejcoslav" />
-          </div>
-
-          <div class="row" style="margin-top: 12px;">
-            <button class="primary" id="generateBtn">Generate</button>
-            <button id="copyLatestBtn" title="Copies the most recently generated callsign">Copy latest callsign</button>
-          </div>
-
-          <div id="statusBox" class="status" aria-live="polite">
-            Ready.
-          </div>
-
-          <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 14px 0;" />
-
-          <div class="row" style="justify-content: space-between;">
-            <div class="pill">
-              Storage: <span class="mono">localStorage</span>
-            </div>
-
-            <!-- ADMIN-LOCKED ACTIONS -->
-            <div class="actions">
-              <button id="adminBtn" title="Unlock admin actions">Admin Unlock</button>
-              <button id="exportBtn" disabled>Export JSON</button>
-              <button id="importBtn" disabled>Import JSON</button>
-              <button id="clearBtn" disabled title="Clears the entire list and resets callsign counter">Clear</button>
-            </div>
-          </div>
-
-          <p class="footerNote">
-            Note: Only accessible for people that have the password.
-          </p>
-        </div>
-      </section>
-
-      <!-- List -->
-      <section class="card listWrap">
-        <div class="listHead">
-          <h2>Assigned Callsigns</h2>
-          <div class="pill">
-            Sort:
-            <span class="mono">FB-###</span>
-          </div>
+          <div class="pill"><strong>Mode:</strong> <span id="modePill">Locked</span></div>
         </div>
 
-        <div style="max-height: 420px; overflow: auto;">
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 120px;">Callsign</th>
-                <th>Name</th>
-              </tr>
-            </thead>
-            <tbody id="listBody"></tbody>
-          </table>
+        <label for="adminKey">Admin key</label>
+        <input id="adminKey" type="password" placeholder="e.g., ADMIN_11 or ADMIN_Master" autocomplete="off" />
+        <div class="btnrow">
+          <button id="unlockBtn">Unlock</button>
         </div>
-
-        <div class="footerNote">
-          Storage of the callsigns.
+        <div id="lockErr" class="error"></div>
+        <div class="hint">
+          Keys: <span style="font-family:var(--mono)">ADMIN_1</span> … <span style="font-family:var(--mono)">ADMIN_12</span>
+          map to <span style="font-family:var(--mono)">F1</span> … <span style="font-family:var(--mono)">F12</span>.
+          <span style="font-family:var(--mono)">ADMIN_Master</span> shows totals for everyone.
         </div>
-      </section>
-    </div>
-  </div>
-
-  <!-- Modal for Import/Export -->
-  <div id="modalBg" class="modalBg" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal">
-      <div class="modalHead">
-        <strong id="modalTitle">Export / Import</strong>
-        <button id="closeModalBtn">Close</button>
       </div>
-      <div class="modalBody">
-        <div id="modalHint" style="color: rgba(255,255,255,0.75); font-size: 13px; margin-bottom: 10px;"></div>
-        <textarea id="modalText" spellcheck="false"></textarea>
-        <div class="row" style="margin-top: 10px; justify-content: flex-end;">
-          <button id="modalPrimaryBtn" class="primary">OK</button>
+    </div>
+
+    <!-- APP -->
+    <div id="app" class="hidden">
+      <div class="top">
+        <div class="brand">
+          <h1>Duty Hours Tracker</h1>
+          <p id="subline">Paste logs → Get hours.</p>
+        </div>
+        <div class="pill"><strong>Unlocked:</strong> <span id="whoami">—</span></div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>Input</h2>
+
+          <label for="logs">Duty Logger export (paste here)</label>
+          <textarea id="logs" placeholder="Paste your Duty Logger logs here..."></textarea>
+
+          <div class="row">
+            <div>
+              <label for="startDate">Start date (inclusive)</label>
+              <input id="startDate" type="date" />
+            </div>
+            <div>
+              <label for="endDate">End date (inclusive)</label>
+              <input id="endDate" type="date" />
+            </div>
+          </div>
+
+          <div class="btnrow">
+            <button id="getHoursBtn">Get hours</button>
+            <button id="clearBtn" class="secondary">Clear</button>
+            <button id="lockBtn" class="secondary">Lock</button>
+          </div>
+
+          <div class="hint">
+            We count only <span style="font-family:var(--mono)">Duty Ended</span> blocks with:
+            <span style="font-family:var(--mono)">Callsign</span>, <span style="font-family:var(--mono)">Duration</span>, and a parseable <span style="font-family:var(--mono)">Ended</span> date.
+          </div>
+
+          <div id="appErr" class="error"></div>
+          <div id="appOk" class="ok"></div>
+        </div>
+
+        <div class="card">
+          <h2>Results</h2>
+
+          <div class="kpi">
+            <div class="box">
+              <div class="t">Selected view</div>
+              <div class="v" id="kpiView">—</div>
+            </div>
+            <div class="box">
+              <div class="t">Total time</div>
+              <div class="v" id="kpiTotal">00:00</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Callsign</th>
+                  <th>Total (HH:MM)</th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody">
+                <tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="foot" id="footNote"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <script>
-    // ====== Storage keys ======
-    const STORAGE_KEY = "fb_callsign_list_v1";
-    const COUNTER_KEY = "fb_callsign_counter_v1";
-    const LATEST_KEY  = "fb_callsign_latest_v1";
+<script>
+(() => {
+  // -------------------- key model --------------------
+  // ADMIN_1..ADMIN_12 => F1..F12
+  // ADMIN_Master => show all
+  const ADMIN_MASTER = "ADMIN_Master";
 
-    // ====== State ======
-    /** @type {{name: string, callsign: string}[]} */
-    let entries = [];
-    let nextNumber = 1; // FB-001 => 1
+  function adminKeyToCallsign(key) {
+    if (!key) return null;
+    if (key === ADMIN_MASTER) return "__MASTER__";
+    const m = /^ADMIN_(\d{1,2})$/.exec(key);
+    if (!m) return null;
+    const n = Number(m[1]);
+    if (!Number.isInteger(n) || n < 1 || n > 12) return null;
+    return "F" + n;
+  }
 
-    // ====== Admin lock (UI-level only) ======
-    let isAdminUnlocked = false;
+  // -------------------- DOM --------------------
+  const lockScreen = document.getElementById("lockScreen");
+  const app = document.getElementById("app");
+  const adminKeyEl = document.getElementById("adminKey");
+  const unlockBtn = document.getElementById("unlockBtn");
+  const lockErr = document.getElementById("lockErr");
+  const modePill = document.getElementById("modePill");
 
-    // CHANGE THIS PIN (keep in mind: anyone can still see it in view-source if they try)
-    const ADMIN_PIN = "UKFRS_command_only_yes";
+  const whoami = document.getElementById("whoami");
+  const subline = document.getElementById("subline");
+  const logsEl = document.getElementById("logs");
+  const startDateEl = document.getElementById("startDate");
+  const endDateEl = document.getElementById("endDate");
+  const getHoursBtn = document.getElementById("getHoursBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const lockBtn = document.getElementById("lockBtn");
+  const appErr = document.getElementById("appErr");
+  const appOk = document.getElementById("appOk");
 
-    function setAdminUnlocked(on) {
-      isAdminUnlocked = on;
-      document.getElementById("exportBtn").disabled = !on;
-      document.getElementById("importBtn").disabled = !on;
-      document.getElementById("clearBtn").disabled = !on;
+  const kpiView = document.getElementById("kpiView");
+  const kpiTotal = document.getElementById("kpiTotal");
+  const resultsBody = document.getElementById("resultsBody");
+  const footNote = document.getElementById("footNote");
+
+  // -------------------- parsing helpers --------------------
+  const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF]/g;
+
+  function cleanLine(s) {
+    return (s ?? "").replace(/\r?\n$/, "").replace(ZERO_WIDTH_RE, "");
+  }
+
+  // Keep exactly F1..F12 (as your Python version does)
+  const CALLSIGN_RE = /^(F(?:[1-9]|1[0-2]))$/i;
+  const DUTY_ENDED_RE = /\b(F(?:[1-9]|1[0-2]))\s*[—–-]\s*Duty\s+Ended\b/i;
+  const CALLSIGN_LINE_RE = /^\s*Callsign:\s*(F(?:[1-9]|1[0-2]))\s*$/i;
+  const DURATION_LINE_RE = /^\s*Duration:\s*(.+?)\s*$/i;
+  const ENDED_LINE_RE = /^\s*Ended:\s*(.+?)\s*$/i;
+
+  const MONTHS = {
+    january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11
+  };
+
+  function parseEndedDateToYMD(text) {
+    const t = cleanLine(text).trim();
+    // Formats we accept (subset of Python):
+    // "Thursday, January 29, 2026 10:04 PM"
+    // "Jan 29, 2026 10:04 PM" (rare)
+    // "January 29, 2026 10:04 PM"
+    // "1/29/2026 10:04 PM"
+    // "1/29/2026 22:04"
+    // We'll return {y,m,d} or null.
+    // 1) Month name format (weekday optional)
+    // Example: "Thursday, January 29, 2026 10:04 PM"
+    const m1 = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
+    if (m1) {
+      const monName = m1[1].toLowerCase();
+      const mon = MONTHS[monName];
+      if (mon === undefined) return null;
+      const day = Number(m1[2]);
+      const year = Number(m1[3]);
+      let hh = Number(m1[4]);
+      const mm = Number(m1[5]);
+      const ampm = (m1[6] || "").toUpperCase();
+      if (ampm) {
+        if (hh === 12) hh = 0;
+        if (ampm === "PM") hh += 12;
+      }
+      if (!isValidYMD(year, mon, day)) return null;
+      return {y:year, m:mon, d:day};
     }
 
-    function promptAdminUnlock() {
-      const pin = prompt("Enter admin PIN:");
-      if (pin === null) return; // cancelled
-      if (pin === ADMIN_PIN) {
-        setAdminUnlocked(true);
-        setStatus("Admin controls unlocked for this session.", "good");
-      } else {
-        setAdminUnlocked(false);
-        setStatus("Wrong PIN.", "bad");
+    // 2) Numeric date format
+    const m2 = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?\s*$/i.exec(t);
+    if (m2) {
+      const mo = Number(m2[1]) - 1;
+      const day = Number(m2[2]);
+      const year = Number(m2[3]);
+      let hh = Number(m2[4]);
+      const mm = Number(m2[5]);
+      const ampm = (m2[6] || "").toUpperCase();
+      if (ampm) {
+        if (hh === 12) hh = 0;
+        if (ampm === "PM") hh += 12;
+      }
+      if (!isValidYMD(year, mo, day)) return null;
+      return {y:year, m:mo, d:day};
+    }
+
+    // 3) Numeric date + 24h time
+    const m3 = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s*$/.exec(t);
+    if (m3) {
+      const mo = Number(m3[1]) - 1;
+      const day = Number(m3[2]);
+      const year = Number(m3[3]);
+      if (!isValidYMD(year, mo, day)) return null;
+      return {y:year, m:mo, d:day};
+    }
+
+    return null;
+  }
+
+  function isValidYMD(y, m, d) {
+    if (!Number.isInteger(y) || y < 1970 || y > 2100) return false;
+    if (!Number.isInteger(m) || m < 0 || m > 11) return false;
+    if (!Number.isInteger(d) || d < 1 || d > 31) return false;
+    const dt = new Date(y, m, d);
+    return dt.getFullYear() === y && dt.getMonth() === m && dt.getDate() === d;
+  }
+
+  function ymdToDate(ymd) {
+    // local midnight
+    return new Date(ymd.y, ymd.m, ymd.d);
+  }
+
+  function durationToMinutes(text) {
+    const t = (text || "").trim();
+    const mh = /(\d+)\s*h/i.exec(t);
+    const mm = /(\d+)\s*m/i.exec(t);
+    const h = mh ? Number(mh[1]) : 0;
+    const m = mm ? Number(mm[1]) : 0;
+    return (h*60) + m;
+  }
+
+  function minutesToHHMM(total) {
+    const h = Math.floor(total/60);
+    const m = total % 60;
+    return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+  }
+
+  function extractShiftsFromText(logText) {
+    const shifts = []; // {callsign, date:Date, minutes}
+    const lines = (logText || "").split("\n").map(cleanLine);
+
+    let inBlock = false;
+    let block_callsign = null;
+    let block_minutes = null;
+    let block_endedYMD = null;
+
+    function finalize() {
+      if (!inBlock) return;
+      if (block_callsign && CALLSIGN_RE.test(block_callsign) && block_minutes != null && block_minutes > 0 && block_endedYMD) {
+        shifts.push({callsign: block_callsign.toUpperCase(), date: ymdToDate(block_endedYMD), minutes: block_minutes});
+      }
+      inBlock = false;
+      block_callsign = null;
+      block_minutes = null;
+      block_endedYMD = null;
+    }
+
+    for (const raw of lines) {
+      const line = raw;
+
+      // Start of block
+      const mStart = DUTY_ENDED_RE.exec(line);
+      if (mStart) {
+        finalize();
+        inBlock = true;
+        block_callsign = (mStart[1] || "").toUpperCase();
+        continue;
+      }
+      if (!inBlock) continue;
+
+      const mCS = CALLSIGN_LINE_RE.exec(line);
+      if (mCS) {
+        block_callsign = (mCS[1] || "").toUpperCase();
+        continue;
+      }
+
+      const mDur = DURATION_LINE_RE.exec(line);
+      if (mDur) {
+        block_minutes = durationToMinutes(mDur[1]);
+        continue;
+      }
+
+      const mEnd = ENDED_LINE_RE.exec(line);
+      if (mEnd) {
+        block_endedYMD = parseEndedDateToYMD(mEnd[1]);
+        finalize();
+        continue;
       }
     }
+    finalize();
+    return shifts;
+  }
 
-    // ====== Helpers ======
-    function normalizeName(raw) {
-      return raw.trim().replace(/\s+/g, " ");
+  function normalizeDateInputToDate(el) {
+    // input[type=date] gives "YYYY-MM-DD" or "".
+    const v = (el.value || "").trim();
+    if (!v) return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    if (!m) return null;
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    if (!isValidYMD(y, mo, d)) return null;
+    return new Date(y, mo, d);
+  }
+
+  function setError(el, msg) {
+    el.style.display = msg ? "block" : "none";
+    el.textContent = msg || "";
+  }
+  function setOk(el, msg) {
+    el.style.display = msg ? "block" : "none";
+    el.textContent = msg || "";
+  }
+
+  // -------------------- unlock flow --------------------
+  let currentMode = null; // "__MASTER__" or "F#"
+  function unlockWithKey(key) {
+    const mapped = adminKeyToCallsign(key);
+    if (!mapped) return {ok:false, msg:"Invalid admin key. Use ADMIN_1 … ADMIN_12 or ADMIN_Master."};
+    currentMode = mapped;
+
+    lockScreen.classList.add("hidden");
+    app.classList.remove("hidden");
+
+    if (currentMode === "__MASTER__") {
+      whoami.textContent = "ADMIN_Master (all callsigns)";
+      modePill.textContent = "Master";
+      subline.textContent = "Master view: totals for all callsigns in the pasted logs.";
+      kpiView.textContent = "All callsigns";
+    } else {
+      whoami.textContent = key + " → " + currentMode;
+      modePill.textContent = currentMode;
+      subline.textContent = "Personal view: only " + currentMode + " will be shown.";
+      kpiView.textContent = currentMode;
     }
-    function normalizeNameKey(raw) {
-      return normalizeName(raw).toLowerCase();
-    }
-    function pad3(n) {
-      const s = String(n);
-      return s.length >= 3 ? s : "0".repeat(3 - s.length) + s;
-    }
-    function toCallsign(n) {
-      return `FB-${pad3(n)}`;
-    }
+    setError(lockErr, "");
+    adminKeyEl.value = "";
+    logsEl.focus();
+    return {ok:true};
+  }
 
-    function setStatus(message, kind = "neutral") {
-      const box = document.getElementById("statusBox");
-      box.textContent = message;
-      box.classList.remove("good", "bad", "warn");
-      if (kind === "good") box.classList.add("good");
-      if (kind === "bad") box.classList.add("bad");
-      if (kind === "warn") box.classList.add("warn");
-    }
+  unlockBtn.addEventListener("click", () => {
+    const key = (adminKeyEl.value || "").trim();
+    const r = unlockWithKey(key);
+    if (!r.ok) setError(lockErr, r.msg);
+  });
+  adminKeyEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") unlockBtn.click();
+  });
 
-    function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-      localStorage.setItem(COUNTER_KEY, String(nextNumber));
-    }
-
-    function loadState() {
-      try {
-        const rawEntries = localStorage.getItem(STORAGE_KEY);
-        const rawCounter = localStorage.getItem(COUNTER_KEY);
-
-        entries = rawEntries ? JSON.parse(rawEntries) : [];
-        if (!Array.isArray(entries)) entries = [];
-
-        const parsedCounter = rawCounter ? parseInt(rawCounter, 10) : NaN;
-        nextNumber = Number.isFinite(parsedCounter) && parsedCounter >= 1 ? parsedCounter : 1;
-      } catch {
-        entries = [];
-        nextNumber = 1;
-      }
-    }
-
-    function render() {
-      document.getElementById("nextCallsign").textContent = toCallsign(nextNumber);
-      document.getElementById("totalCount").textContent = String(entries.length);
-
-      const tbody = document.getElementById("listBody");
-      tbody.innerHTML = "";
-
-      const sorted = [...entries].sort((a, b) => {
-        const na = parseInt(a.callsign.split("-")[1], 10);
-        const nb = parseInt(b.callsign.split("-")[1], 10);
-        return na - nb;
-      });
-
-      for (const e of sorted) {
+  // -------------------- app actions --------------------
+  function renderResults(rows, grandTotalMinutes, meta) {
+    resultsBody.innerHTML = "";
+    if (!rows.length) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 2;
+      td.style.color = "var(--muted)";
+      td.textContent = "No matching Duty Ended shifts found for that view / date range.";
+      tr.appendChild(td);
+      resultsBody.appendChild(tr);
+    } else {
+      for (const r of rows) {
         const tr = document.createElement("tr");
-
-        const tdCall = document.createElement("td");
-        tdCall.textContent = e.callsign;
-        tdCall.className = "mono";
-
-        const tdName = document.createElement("td");
-        tdName.textContent = e.name;
-
-        tr.appendChild(tdCall);
-        tr.appendChild(tdName);
-        tbody.appendChild(tr);
+        const td1 = document.createElement("td");
+        td1.textContent = r.callsign;
+        const td2 = document.createElement("td");
+        td2.textContent = minutesToHHMM(r.minutes);
+        tr.appendChild(td1); tr.appendChild(td2);
+        resultsBody.appendChild(tr);
       }
     }
+    kpiTotal.textContent = minutesToHHMM(grandTotalMinutes);
+    footNote.textContent = meta;
+  }
 
-    function nameExists(nameRaw) {
-      const key = normalizeNameKey(nameRaw);
-      return entries.some(e => normalizeNameKey(e.name) === key);
+  function compute() {
+    setError(appErr, "");
+    setOk(appOk, "");
+
+    const text = logsEl.value || "";
+    if (!text.trim()) {
+      setError(appErr, "Paste logs first.");
+      return;
     }
 
-    // ====== Modal (Import/Export) ======
-    const modalBg = document.getElementById("modalBg");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalHint = document.getElementById("modalHint");
-    const modalText = document.getElementById("modalText");
-    const modalPrimaryBtn = document.getElementById("modalPrimaryBtn");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-
-    let modalMode = "export"; // "export" | "import"
-
-    function openModal(mode) {
-      modalMode = mode;
-      modalText.value = "";
-      modalText.readOnly = (mode === "export");
-
-      if (mode === "export") {
-        modalTitle.textContent = "Export JSON";
-        modalHint.textContent = "Copy this JSON somewhere safe. You can import it later on another device/browser.";
-        const payload = { version: 1, nextNumber, entries };
-        modalText.value = JSON.stringify(payload, null, 2);
-        modalPrimaryBtn.textContent = "Copy to clipboard";
-      } else {
-        modalTitle.textContent = "Import JSON";
-        modalHint.textContent = "Paste previously exported JSON here. This will replace your current list.";
-        modalPrimaryBtn.textContent = "Import";
-      }
-
-      modalBg.style.display = "flex";
-      setTimeout(() => modalText.focus(), 0);
+    const start = normalizeDateInputToDate(startDateEl);
+    const end = normalizeDateInputToDate(endDateEl);
+    if (start && end && start.getTime() > end.getTime()) {
+      setError(appErr, "Start date must be on or before End date.");
+      return;
     }
 
-    function closeModal() {
-      modalBg.style.display = "none";
+    const shifts = extractShiftsFromText(text);
+
+    // filter + totals
+    const totals = {}; // callsign -> minutes
+    let parsedBlocks = 0;
+
+    for (const s of shifts) {
+      parsedBlocks += 1;
+      if (start && s.date.getTime() < start.getTime()) continue;
+      if (end && s.date.getTime() > end.getTime()) continue;
+      totals[s.callsign] = (totals[s.callsign] || 0) + s.minutes;
     }
 
-    closeModalBtn.addEventListener("click", closeModal);
-    modalBg.addEventListener("click", (e) => {
-      if (e.target === modalBg) closeModal();
-    });
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modalBg.style.display === "flex") closeModal();
-    });
+    let rows = [];
+    let grand = 0;
 
-    modalPrimaryBtn.addEventListener("click", async () => {
-      if (modalMode === "export") {
-        try {
-          await navigator.clipboard.writeText(modalText.value);
-          setStatus("Export copied to clipboard.", "good");
-          closeModal();
-        } catch {
-          setStatus("Could not access clipboard. Manually copy the JSON from the modal.", "warn");
-        }
-        return;
+    if (currentMode === "__MASTER__") {
+      for (let i=1;i<=12;i++){
+        const cs = "F"+i;
+        const mins = totals[cs] || 0;
+        if (mins > 0) rows.push({callsign: cs, minutes: mins});
       }
+      rows.sort((a,b) => a.callsign.localeCompare(b.callsign));
+      grand = rows.reduce((acc,r)=>acc+r.minutes,0);
+      kpiView.textContent = "All callsigns";
+    } else {
+      const mins = totals[currentMode] || 0;
+      if (mins > 0) rows = [{callsign: currentMode, minutes: mins}];
+      grand = mins;
+      kpiView.textContent = currentMode;
+    }
 
-      // import
-      try {
-        const payload = JSON.parse(modalText.value);
-        if (!payload || typeof payload !== "object") throw new Error("Invalid payload");
+    const meta = `Parsed ${parsedBlocks} Duty Ended blocks. Showing results for: ${currentMode === "__MASTER__" ? "all callsigns" : currentMode}.`;
+    renderResults(rows, grand, meta);
 
-        const importedEntries = payload.entries;
-        const importedNext = payload.nextNumber;
+    if (grand === 0) {
+      setOk(appOk, "");
+    } else {
+      setOk(appOk, "Done.");
+    }
+  }
 
-        if (!Array.isArray(importedEntries)) throw new Error("entries must be an array");
-        if (!Number.isFinite(importedNext) || importedNext < 1) throw new Error("nextNumber must be >= 1");
+  getHoursBtn.addEventListener("click", compute);
 
-        for (const item of importedEntries) {
-          if (!item || typeof item !== "object") throw new Error("Bad entry");
-          if (typeof item.name !== "string" || typeof item.callsign !== "string") throw new Error("Bad entry fields");
-          if (!/^FB-\d{3,}$/.test(item.callsign)) throw new Error("Bad callsign format");
-        }
+  clearBtn.addEventListener("click", () => {
+    logsEl.value = "";
+    setError(appErr, "");
+    setOk(appOk, "");
+    renderResults([], 0, "");
+    logsEl.focus();
+  });
 
-        entries = importedEntries.map(e => ({
-          name: normalizeName(e.name),
-          callsign: e.callsign
-        }));
+  lockBtn.addEventListener("click", () => {
+    currentMode = null;
+    app.classList.add("hidden");
+    lockScreen.classList.remove("hidden");
+    modePill.textContent = "Locked";
+    setError(lockErr, "");
+    adminKeyEl.value = "";
+    adminKeyEl.focus();
+  });
 
-        // remove duplicate names on import (keep first)
-        const seen = new Set();
-        entries = entries.filter(e => {
-          const k = normalizeNameKey(e.name);
-          if (seen.has(k)) return false;
-          seen.add(k);
-          return true;
-        });
-
-        nextNumber = importedNext;
-        saveState();
-        render();
-        setStatus("Imported successfully.", "good");
-        closeModal();
-      } catch {
-        setStatus("Import failed: invalid JSON or format.", "bad");
-      }
-    });
-
-    // ====== Main actions ======
-    document.getElementById("adminBtn").addEventListener("click", promptAdminUnlock);
-
-    document.getElementById("generateBtn").addEventListener("click", () => {
-      const input = document.getElementById("nameInput");
-      const raw = input.value;
-      const name = normalizeName(raw);
-
-      if (!name) {
-        setStatus("Enter a name first.", "warn");
-        input.focus();
-        return;
-      }
-
-      if (nameExists(name)) {
-        setStatus("Name already in list", "bad");
-        return;
-      }
-
-      const callsign = toCallsign(nextNumber);
-      entries.push({ name, callsign });
-      localStorage.setItem(LATEST_KEY, callsign);
-
-      nextNumber += 1;
-      saveState();
-      render();
-
-      setStatus(`Assigned ${callsign} to "${name}".`, "good");
-      input.value = "";
-      input.focus();
-    });
-
-    document.getElementById("nameInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") document.getElementById("generateBtn").click();
-    });
-
-    document.getElementById("copyLatestBtn").addEventListener("click", async () => {
-      const latest = localStorage.getItem(LATEST_KEY);
-      if (!latest) {
-        setStatus("No callsign generated yet.", "warn");
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(latest);
-        setStatus(`Copied ${latest} to clipboard.`, "good");
-      } catch {
-        setStatus("Could not access clipboard. Copy manually from the list.", "warn");
-      }
-    });
-
-    document.getElementById("exportBtn").addEventListener("click", () => openModal("export"));
-    document.getElementById("importBtn").addEventListener("click", () => openModal("import"));
-
-    document.getElementById("clearBtn").addEventListener("click", () => {
-      const ok = confirm("Clear the entire list and reset callsign counter to FB-001?");
-      if (!ok) return;
-
-      entries = [];
-      nextNumber = 1;
-      localStorage.removeItem(LATEST_KEY);
-      saveState();
-      render();
-      setStatus("Cleared. Counter reset to FB-001.", "good");
-    });
-
-    // ====== Init ======
-    loadState();
-    render();
-    setAdminUnlocked(false); // locked by default
-  </script>
+  // Start focused on key input
+  adminKeyEl.focus();
+})();
+</script>
 </body>
 </html>
+"""
+(base / "index.html").write_text(index_html, encoding="utf-8")
+
+readme = """# Duty Hours Tracker (GitHub Pages)
+
+This is a single-file static website (index.html).
+
+## How to publish on GitHub Pages
+1. Create a new GitHub repo (public or private).
+2. Upload `index.html` to the repo root.
+3. In GitHub repo settings → **Pages**:
+   - Source: `Deploy from a branch`
+   - Branch: `main` / root
+4. Open the Pages URL GitHub gives you.
+
+## Admin keys
+- `ADMIN_1` … `ADMIN_12` map to `F1` … `F12` (shows only that callsign's total).
+- `ADMIN_Master` shows totals for all callsigns.
+
+## Notes
+- Paste your Duty Logger export into the textbox.
+- Set optional start/end dates (inclusive), then click **Get hours**.
+"""
+(base / "README.md").write_text(readme, encoding="utf-8")
+
+zip_path = "/mnt/data/duty-hours-site.zip"
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    z.write(base / "index.html", arcname="index.html")
+    z.write(base / "README.md", arcname="README.md")
+
+zip_path
+
