@@ -12,6 +12,11 @@
   --radius:18px;
   --mono: ui-monospace, Consolas, monospace;
   --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+
+  --rowRedBg: rgba(255, 90, 90, 0.16);
+  --rowRedBorder: rgba(255, 90, 90, 0.35);
+  --rowGreenBg: rgba(124, 255, 167, 0.16);
+  --rowGreenBorder: rgba(124, 255, 167, 0.35);
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -37,7 +42,11 @@ body{
   width:100%;
   height:100%;
   object-fit:cover;
-  object-position:center;
+
+  /* ✅ Move the video "down" (show more of the top of the clip) */
+  /* 0% = show top, 50% = center, 100% = bottom */
+  object-position: center 20%;
+
   filter:none;
 }
 
@@ -185,6 +194,36 @@ tr:last-child td{border-bottom:none;}
 .kpi .t{color:var(--muted);font-size:12px;}
 .kpi .v{font-size:20px;font-weight:700;margin-top:4px;}
 .foot{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.35;}
+
+/* ✅ Quota row coloring */
+tr.quota-missing td{
+  background: var(--rowRedBg);
+  border-bottom-color: var(--rowRedBorder);
+}
+tr.quota-complete td{
+  background: var(--rowGreenBg);
+  border-bottom-color: var(--rowGreenBorder);
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.20);
+  font-size:12px;
+  color:var(--text);
+  white-space:nowrap;
+}
+.badge.red{
+  border-color: var(--rowRedBorder);
+  background: rgba(255,90,90,0.12);
+}
+.badge.green{
+  border-color: var(--rowGreenBorder);
+  background: rgba(124,255,167,0.12);
+}
 </style>
 </head>
 
@@ -233,11 +272,11 @@ tr:last-child td{border-bottom:none;}
       <div class="card">
         <div class="kpi">
           <div class="box">
-            <div class="t">View</div>
-            <div class="v">All callsigns</div>
+            <div class="t">Quota</div>
+            <div class="v">06:00</div>
           </div>
           <div class="box">
-            <div class="t">Total time</div>
+            <div class="t">Total time (all)</div>
             <div class="v" id="kpiTotal">00:00</div>
           </div>
         </div>
@@ -247,10 +286,11 @@ tr:last-child td{border-bottom:none;}
             <tr>
               <th>Callsign</th>
               <th>Total</th>
+              <th>Quota status</th>
             </tr>
           </thead>
           <tbody id="resultsBody">
-            <tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>
+            <tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>
           </tbody>
         </table>
       </div>
@@ -259,7 +299,7 @@ tr:last-child td{border-bottom:none;}
 
 <script>
 (() => {
-  // Make autoplay more reliable (some browsers need a nudge)
+  // Autoplay reliability nudge
   const v = document.getElementById("bg-video");
   if (v) {
     v.muted = true;
@@ -268,6 +308,9 @@ tr:last-child td{border-bottom:none;}
     document.addEventListener("touchstart", tryPlay, { once:true });
     tryPlay();
   }
+
+  // ---------- constants ----------
+  const QUOTA_MINUTES = 6 * 60; // 6 hours
 
   // ---------- patterns ----------
   const CALLSIGN_RE = /^(F(?:[1-9]|1[0-2]))$/i;
@@ -292,7 +335,6 @@ tr:last-child td{border-bottom:none;}
     const h=Math.floor(t/60), m=t%60;
     return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
   }
-
   function isValidYMD(y,m,d){
     const dt = new Date(y,m,d);
     return Number.isInteger(y) && Number.isInteger(m) && Number.isInteger(d) &&
@@ -300,16 +342,12 @@ tr:last-child td{border-bottom:none;}
       dt.getFullYear()===y && dt.getMonth()===m && dt.getDate()===d;
   }
 
-  // Parses Ended line into a Date (local midnight), supports multiple formats.
+  // Parse Ended line -> Date (local midnight)
   function parseEndedToDate(endedText){
     let t = String(endedText || "").trim();
-
-    // Remove "[21:11]" style prefixes
     t = t.replace(/^\[\d{1,2}:\d{2}\]\s*/, "");
 
-    // A) Day-first with optional weekday:
-    // "Sunday 15 February 2026 20:32"
-    // "15 February 2026 20:32"
+    // A) Day-first, optional weekday:
     const mA = /^(?:[A-Za-z]+(?:day)?[,\s]+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mA) {
       const day = Number(mA[1]);
@@ -319,9 +357,7 @@ tr:last-child td{border-bottom:none;}
       return new Date(year, mon, day);
     }
 
-    // B) Month-name with optional weekday and commas:
-    // "Thursday, January 29, 2026 10:04 PM"
-    // "January 29, 2026 10:04 PM"
+    // B) Month-name, optional weekday+comma:
     const mB = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mB) {
       const mon = MONTHS[mB[1].toLowerCase()];
@@ -331,8 +367,7 @@ tr:last-child td{border-bottom:none;}
       return new Date(year, mon, day);
     }
 
-    // C) Numeric date with time (support M/D or D/M):
-    // If first number > 12 => D/M else M/D
+    // C) Numeric date with time (M/D or D/M)
     const mC = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?\s*$/i.exec(t);
     if (mC) {
       const a = Number(mC[1]);
@@ -344,7 +379,7 @@ tr:last-child td{border-bottom:none;}
       return new Date(year, mo, day);
     }
 
-    // D) Numeric date + 24h time (no AM/PM)
+    // D) Numeric date + 24h time
     const mD = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s*$/.exec(t);
     if (mD) {
       const a = Number(mD[1]);
@@ -359,7 +394,7 @@ tr:last-child td{border-bottom:none;}
     return null;
   }
 
-  // Extract Duty Ended blocks into records: {callsign, endedDate, minutes}
+  // Extract blocks -> {callsign, ended, minutes}
   function extractRecords(logText){
     const lines = String(logText || "").split("\n");
     const records = [];
@@ -417,7 +452,7 @@ tr:last-child td{border-bottom:none;}
     return records;
   }
 
-  // Convert <input type="date"> to Date at local midnight
+  // Convert <input type="date"> to local midnight Date
   function inputDate(el){
     const v = (el.value || "").trim(); // "YYYY-MM-DD"
     if (!v) return null;
@@ -443,23 +478,40 @@ tr:last-child td{border-bottom:none;}
     el.textContent = msg || "";
   }
 
+  function quotaCellHTML(totalMinutes){
+    if (totalMinutes >= QUOTA_MINUTES) {
+      return `<span class="badge green">Quota complete</span>`;
+    }
+    const remaining = QUOTA_MINUTES - totalMinutes;
+    return `<span class="badge red">Remaining: ${minutesToHHMM(remaining)}</span>`;
+  }
+
   function renderTotals(totals){
     resultsBody.innerHTML = "";
+
     const keys = Object.keys(totals).sort();
     if (keys.length === 0){
-      resultsBody.innerHTML = '<tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>';
+      resultsBody.innerHTML = '<tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>';
       kpiTotal.textContent = "00:00";
       return 0;
     }
 
     let grand = 0;
+
     for (const cs of keys){
       const mins = totals[cs];
       grand += mins;
+
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${cs}</td><td>${minutesToHHMM(mins)}</td>`;
+      tr.className = (mins >= QUOTA_MINUTES) ? "quota-complete" : "quota-missing";
+      tr.innerHTML = `
+        <td>${cs}</td>
+        <td>${minutesToHHMM(mins)}</td>
+        <td>${quotaCellHTML(mins)}</td>
+      `;
       resultsBody.appendChild(tr);
     }
+
     kpiTotal.textContent = minutesToHHMM(grand);
     return grand;
   }
@@ -505,7 +557,7 @@ tr:last-child td{border-bottom:none;}
     logsEl.value = "";
     startEl.value = "";
     endEl.value = "";
-    resultsBody.innerHTML = '<tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>';
+    resultsBody.innerHTML = '<tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>';
     kpiTotal.textContent = "00:00";
     show(appErr, "");
     show(appOk, "");
@@ -519,4 +571,3 @@ tr:last-child td{border-bottom:none;}
 
 </body>
 </html>
-
