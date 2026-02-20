@@ -9,12 +9,8 @@
       --bg0:#0b1020;
       --bg1:#0f1730;
       --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.09);
       --text:#e9ecf5;
       --muted:#aeb7d3;
-      --accent:#7aa2ff;
-      --accent2:#7cffa7;
-      --danger:#ff6b6b;
       --shadow: 0 20px 60px rgba(0,0,0,.45);
       --radius: 18px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -45,44 +41,19 @@
       gap:16px;
       margin-bottom: 18px;
     }
-    .brand{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-    .brand h1{
-      margin:0;
-      font-size: 28px;
-      letter-spacing:.2px;
-    }
-    .brand p{
-      margin:0;
-      color:var(--muted);
-      font-size: 14px;
-      line-height:1.4;
-    }
+    .brand{display:flex;flex-direction:column;gap:6px;}
+    .brand h1{margin:0;font-size:28px;letter-spacing:.2px;}
+    .brand p{margin:0;color:var(--muted);font-size:14px;line-height:1.4;}
     .pill{
-      display:inline-flex;
-      gap:10px;
-      align-items:center;
-      padding:10px 12px;
-      border-radius: 999px;
+      display:inline-flex;gap:10px;align-items:center;
+      padding:10px 12px;border-radius:999px;
       background: rgba(255,255,255,.06);
       border: 1px solid rgba(255,255,255,.10);
-      color: var(--muted);
-      font-size: 13px;
-      user-select:none;
-      white-space:nowrap;
+      color: var(--muted);font-size:13px;user-select:none;white-space:nowrap;
     }
     .pill strong{color:var(--text); font-weight:600}
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-    @media (min-width: 920px){
-      .grid{grid-template-columns: 1.25fr .75fr;}
-    }
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;}
+    @media (min-width: 920px){ .grid{grid-template-columns: 1.25fr .75fr;} }
     .card{
       background: var(--card);
       border: 1px solid rgba(255,255,255,.10);
@@ -91,19 +62,9 @@
       padding: 18px;
       backdrop-filter: blur(10px);
     }
-    .card h2{
-      margin:0 0 10px 0;
-      font-size: 16px;
-      letter-spacing:.2px;
-      color: var(--text);
-    }
-    label{
-      display:block;
-      color: var(--muted);
-      font-size: 13px;
-      margin: 10px 0 6px;
-    }
-    input[type="text"], input[type="password"], input[type="date"], textarea{
+    .card h2{margin:0 0 10px 0;font-size:16px;letter-spacing:.2px;color:var(--text);}
+    label{display:block;color:var(--muted);font-size:13px;margin:10px 0 6px;}
+    input[type="date"], textarea{
       width:100%;
       padding: 12px 12px;
       border-radius: 12px;
@@ -113,9 +74,9 @@
       outline: none;
       box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
       font-family: var(--sans);
-      transition: border .15s ease, transform .15s ease, background .15s ease;
+      transition: border .15s ease, background .15s ease;
     }
-    input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus, textarea:focus{
+    input[type="date"]:focus, textarea:focus{
       border-color: rgba(122,162,255,.65);
       background: rgba(10,12,22,.70);
     }
@@ -126,26 +87,13 @@
       font-size: 12.5px;
       line-height: 1.45;
     }
-    .row{
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;}
     .row > *{flex: 1 1 160px}
-    .btnrow{
-      display:flex;
-      gap:10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
     button{
-      appearance:none;
-      border:none;
-      cursor:pointer;
-      padding: 12px 14px;
-      border-radius: 14px;
-      font-weight: 650;
-      letter-spacing:.2px;
+      appearance:none;border:none;cursor:pointer;
+      padding: 12px 14px;border-radius: 14px;
+      font-weight: 650;letter-spacing:.2px;
       background: linear-gradient(135deg, rgba(122,162,255,.95), rgba(124,255,167,.70));
       color: #091023;
       box-shadow: 0 14px 30px rgba(0,0,0,.35);
@@ -158,32 +106,18 @@
       box-shadow: none;
     }
     button:active{transform: translateY(1px) scale(.99)}
-    button[disabled]{opacity:.45; cursor:not-allowed; filter:saturate(.5)}
-    .hint{
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 12.5px;
-      line-height:1.45;
-    }
+    .hint{margin-top:10px;color:var(--muted);font-size:12.5px;line-height:1.45;}
     .error{
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 12px;
+      margin-top: 10px;padding: 10px 12px;border-radius: 12px;
       border: 1px solid rgba(255,107,107,.35);
       background: rgba(255,107,107,.10);
-      color: #ffd7d7;
-      font-size: 13px;
-      display:none;
+      color: #ffd7d7;font-size: 13px;display:none;
     }
     .ok{
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 12px;
+      margin-top: 10px;padding: 10px 12px;border-radius: 12px;
       border: 1px solid rgba(124,255,167,.25);
       background: rgba(124,255,167,.10);
-      color: #d7ffe7;
-      font-size: 13px;
-      display:none;
+      color: #d7ffe7;font-size: 13px;display:none;
     }
     table{
       width:100%;
@@ -215,181 +149,86 @@
     }
     .kpi .box .t{color: var(--muted); font-size: 12px}
     .kpi .box .v{font-size: 20px; font-weight: 750; margin-top: 4px}
-    .foot{
-      margin-top: 16px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height:1.45;
-    }
-    .lockscreen{
-      min-height: calc(100vh - 120px);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 24px 0;
-    }
-    .lockcard{
-      max-width: 520px;
-      width:100%;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      margin-bottom: 10px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .dot{
-      width:10px;height:10px;border-radius:50%;
-      background: rgba(122,162,255,.9);
-      box-shadow: 0 0 0 6px rgba(122,162,255,.15);
-    }
-    .hidden{display:none !important;}
+    .foot{margin-top: 16px;color:var(--muted);font-size:12px;line-height:1.45;}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- LOCK SCREEN -->
-    <div id="lockScreen" class="lockscreen">
-      <div class="card lockcard">
-        <div class="badge"><span class="dot"></span><span>Enter admin key to continue</span></div>
-        <div class="top" style="margin:0 0 10px 0;">
-          <div class="brand">
-            <h1>Duty Hours Tracker</h1>
-            <p>Paste  exports, filter by date, and calculate hours.</p>
-          </div>
-          <div class="pill"><strong>Mode:</strong> <span id="modePill">Locked</span></div>
-        </div>
-
-        <label for="adminKey">Admin key</label>
-        <input id="adminKey" type="password" placeholder=Write your password" autocomplete="off" />
-        <div class="btnrow">
-          <button id="unlockBtn">Unlock</button>
-        </div>
-        <div id="lockErr" class="error"></div>
-        <div class="hint">
-          Keys: <span style="font-family:var(--mono)">ADMIN_1</span> … <span style="font-family:var(--mono)">ADMIN_12</span>
-          only shows times from <span style="font-family:var(--mono)">F1</span> … <span style="font-family:var(--mono)">F12</span>.
-          <span style="font-family:var(--mono)">The master "key"</span> shows totals for everyone. Contact F2 about your password.
-        </div>
+    <div class="top">
+      <div class="brand">
+        <h1>Duty Hours Tracker</h1>
+        <p>Paste Duty Logger exports, optionally filter by date, and calculate totals for everyone.</p>
       </div>
+      <div class="pill"><strong>View:</strong> <span>All callsigns</span></div>
     </div>
 
-    <!-- APP -->
-    <div id="app" class="hidden">
-      <div class="top">
-        <div class="brand">
-          <h1>Duty Hours Tracker</h1>
-          <p id="subline">Paste logs → Get hours.</p>
+    <div class="grid">
+      <div class="card">
+        <h2>Input</h2>
+
+        <label for="logs">Duty Logger export (paste here)</label>
+        <textarea id="logs" placeholder="Paste your Duty Logger logs here..."></textarea>
+
+        <div class="row">
+          <div>
+            <label for="startDate">Start date (inclusive)</label>
+            <input id="startDate" type="date" />
+          </div>
+          <div>
+            <label for="endDate">End date (inclusive)</label>
+            <input id="endDate" type="date" />
+          </div>
         </div>
-        <div class="pill"><strong>Unlocked:</strong> <span id="whoami">—</span></div>
+
+        <div class="btnrow">
+          <button id="getHoursBtn">Get hours</button>
+          <button id="clearBtn" class="secondary">Clear</button>
+        </div>
+
+        <div class="hint">
+          We count only <span style="font-family:var(--mono)">Duty Ended</span> blocks with:
+          <span style="font-family:var(--mono)">Callsign</span>, <span style="font-family:var(--mono)">Duration</span>, and a parseable <span style="font-family:var(--mono)">Ended</span> date.
+        </div>
+
+        <div id="appErr" class="error"></div>
+        <div id="appOk" class="ok"></div>
       </div>
 
-      <div class="grid">
-        <div class="card">
-          <h2>Input</h2>
+      <div class="card">
+        <h2>Results</h2>
 
-          <label for="logs">Duty Logger export (paste here)</label>
-          <textarea id="logs" placeholder="Paste your Duty Logger logs here..."></textarea>
-
-          <div class="row">
-            <div>
-              <label for="startDate">Start date (inclusive)</label>
-              <input id="startDate" type="date" />
-            </div>
-            <div>
-              <label for="endDate">End date (inclusive)</label>
-              <input id="endDate" type="date" />
-            </div>
+        <div class="kpi">
+          <div class="box">
+            <div class="t">Selected view</div>
+            <div class="v">All callsigns</div>
           </div>
-
-          <div class="btnrow">
-            <button id="getHoursBtn">Get hours</button>
-            <button id="clearBtn" class="secondary">Clear</button>
-            <button id="lockBtn" class="secondary">Lock</button>
+          <div class="box">
+            <div class="t">Total time</div>
+            <div class="v" id="kpiTotal">00:00</div>
           </div>
-
-
-          <div id="appErr" class="error"></div>
-          <div id="appOk" class="ok"></div>
         </div>
 
-        <div class="card">
-          <h2>Results</h2>
-
-          <div class="kpi">
-            <div class="box">
-              <div class="t">Selected view</div>
-              <div class="v" id="kpiView">—</div>
-            </div>
-            <div class="box">
-              <div class="t">Total time</div>
-              <div class="v" id="kpiTotal">00:00</div>
-            </div>
-          </div>
-
-          <div style="margin-top:12px; overflow:auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Callsign</th>
-                  <th>Total (HH:MM)</th>
-                </tr>
-              </thead>
-              <tbody id="resultsBody">
-                <tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="foot" id="footNote"></div>
+        <div style="margin-top:12px; overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Callsign</th>
+                <th>Total (HH:MM)</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>
+            </tbody>
+          </table>
         </div>
+
+        <div class="foot" id="footNote"></div>
       </div>
     </div>
   </div>
 
 <script>
 (() => {
-  // -------------------- key model --------------------
-  // ADMIN_1..ADMIN_12 => F1..F12
-  // ADMIN_Master => show all
-  const ADMIN_MASTER = "UKFRS_stratcom2026";
-
-  function adminKeyToCallsign(key) {
-    if (!key) return null;
-    if (key === ADMIN_MASTER) return "__MASTER__";
-    const m = /^ADMIN_(\d{1,2})$/.exec(key);
-    if (!m) return null;
-    const n = Number(m[1]);
-    if (!Number.isInteger(n) || n < 1 || n > 12) return null;
-    return "F" + n;
-  }
-
-  // -------------------- DOM --------------------
-  const lockScreen = document.getElementById("lockScreen");
-  const app = document.getElementById("app");
-  const adminKeyEl = document.getElementById("adminKey");
-  const unlockBtn = document.getElementById("unlockBtn");
-  const lockErr = document.getElementById("lockErr");
-  const modePill = document.getElementById("modePill");
-
-  const whoami = document.getElementById("whoami");
-  const subline = document.getElementById("subline");
-  const logsEl = document.getElementById("logs");
-  const startDateEl = document.getElementById("startDate");
-  const endDateEl = document.getElementById("endDate");
-  const getHoursBtn = document.getElementById("getHoursBtn");
-  const clearBtn = document.getElementById("clearBtn");
-  const lockBtn = document.getElementById("lockBtn");
-  const appErr = document.getElementById("appErr");
-  const appOk = document.getElementById("appOk");
-
-  const kpiView = document.getElementById("kpiView");
-  const kpiTotal = document.getElementById("kpiTotal");
-  const resultsBody = document.getElementById("resultsBody");
-  const footNote = document.getElementById("footNote");
-
   // -------------------- parsing helpers --------------------
   const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF]/g;
 
@@ -397,7 +236,7 @@
     return (s ?? "").replace(/\r?\n$/, "").replace(ZERO_WIDTH_RE, "");
   }
 
-  // Keep exactly F1..F12 (as your Python version does)
+  // Keep exactly F1..F12
   const CALLSIGN_RE = /^(F(?:[1-9]|1[0-2]))$/i;
   const DUTY_ENDED_RE = /\b(F(?:[1-9]|1[0-2]))\s*[—–-]\s*Duty\s+Ended\b/i;
   const CALLSIGN_LINE_RE = /^\s*Callsign:\s*(F(?:[1-9]|1[0-2]))\s*$/i;
@@ -408,65 +247,6 @@
     january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11
   };
 
-  function parseEndedDateToYMD(text) {
-    const t = cleanLine(text).trim();
-    // Formats we accept (subset of Python):
-    // "Thursday, January 29, 2026 10:04 PM"
-    // "Jan 29, 2026 10:04 PM" (rare)
-    // "January 29, 2026 10:04 PM"
-    // "1/29/2026 10:04 PM"
-    // "1/29/2026 22:04"
-    // We'll return {y,m,d} or null.
-    // 1) Month name format (weekday optional)
-    // Example: "Thursday, January 29, 2026 10:04 PM"
-    const m1 = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
-    if (m1) {
-      const monName = m1[1].toLowerCase();
-      const mon = MONTHS[monName];
-      if (mon === undefined) return null;
-      const day = Number(m1[2]);
-      const year = Number(m1[3]);
-      let hh = Number(m1[4]);
-      const mm = Number(m1[5]);
-      const ampm = (m1[6] || "").toUpperCase();
-      if (ampm) {
-        if (hh === 12) hh = 0;
-        if (ampm === "PM") hh += 12;
-      }
-      if (!isValidYMD(year, mon, day)) return null;
-      return {y:year, m:mon, d:day};
-    }
-
-    // 2) Numeric date format
-    const m2 = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?\s*$/i.exec(t);
-    if (m2) {
-      const mo = Number(m2[1]) - 1;
-      const day = Number(m2[2]);
-      const year = Number(m2[3]);
-      let hh = Number(m2[4]);
-      const mm = Number(m2[5]);
-      const ampm = (m2[6] || "").toUpperCase();
-      if (ampm) {
-        if (hh === 12) hh = 0;
-        if (ampm === "PM") hh += 12;
-      }
-      if (!isValidYMD(year, mo, day)) return null;
-      return {y:year, m:mo, d:day};
-    }
-
-    // 3) Numeric date + 24h time
-    const m3 = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s*$/.exec(t);
-    if (m3) {
-      const mo = Number(m3[1]) - 1;
-      const day = Number(m3[2]);
-      const year = Number(m3[3]);
-      if (!isValidYMD(year, mo, day)) return null;
-      return {y:year, m:mo, d:day};
-    }
-
-    return null;
-  }
-
   function isValidYMD(y, m, d) {
     if (!Number.isInteger(y) || y < 1970 || y > 2100) return false;
     if (!Number.isInteger(m) || m < 0 || m > 11) return false;
@@ -476,8 +256,75 @@
   }
 
   function ymdToDate(ymd) {
-    // local midnight
-    return new Date(ymd.y, ymd.m, ymd.d);
+    return new Date(ymd.y, ymd.m, ymd.d); // local midnight
+  }
+
+  function parseEndedDateToYMD(text) {
+    let t = cleanLine(text).trim();
+
+    // Remove leading Discord-style time prefixes like "[21:11]"
+    t = t.replace(/^\[\d{1,2}:\d{2}\]\s*/, "");
+
+    // Cut accidental trailing fragments if present.
+    t = t.replace(/\s*F999\s+Duty[\s\S]*$/i, "").trim();
+
+    // A) Day-first with optional weekday:
+    //    "Sunday 15 February 2026 20:32"
+    //    "15 February 2026 20:32"
+    const mA = /^(?:[A-Za-z]+(?:day)?[,\s]+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
+    if (mA) {
+      const day = Number(mA[1]);
+      const monName = mA[2].toLowerCase();
+      const year = Number(mA[3]);
+      const mon = MONTHS[monName];
+      if (mon === undefined) return null;
+      if (!isValidYMD(year, mon, day)) return null;
+      return {y: year, m: mon, d: day};
+    }
+
+    // B) Month-name with optional weekday and commas:
+    //    "Thursday, January 29, 2026 10:04 PM"
+    //    "January 29, 2026 10:04 PM"
+    const mB = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
+    if (mB) {
+      const monName = mB[1].toLowerCase();
+      const mon = MONTHS[monName];
+      if (mon === undefined) return null;
+      const day = Number(mB[2]);
+      const year = Number(mB[3]);
+      if (!isValidYMD(year, mon, day)) return null;
+      return {y: year, m: mon, d: day};
+    }
+
+    // C) Numeric date (support both M/D/YYYY and D/M/YYYY).
+    // Disambiguation:
+    // - If first number > 12 => D/M
+    // - Else default to M/D
+    const mC = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?\s*$/i.exec(t);
+    if (mC) {
+      const a = Number(mC[1]);
+      const b = Number(mC[2]);
+      const year = Number(mC[3]);
+
+      let mo, day;
+      if (a > 12) { day = a; mo = b - 1; } else { mo = a - 1; day = b; }
+      if (!isValidYMD(year, mo, day)) return null;
+      return {y: year, m: mo, d: day};
+    }
+
+    // D) Numeric date + 24h time (no AM/PM)
+    const mD = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s*$/.exec(t);
+    if (mD) {
+      const a = Number(mD[1]);
+      const b = Number(mD[2]);
+      const year = Number(mD[3]);
+      let mo, day;
+      if (a > 12) { day = a; mo = b - 1; } else { mo = a - 1; day = b; }
+      if (!isValidYMD(year, mo, day)) return null;
+      return {y: year, m: mo, d: day};
+    }
+
+    return null;
   }
 
   function durationToMinutes(text) {
@@ -518,7 +365,6 @@
     for (const raw of lines) {
       const line = raw;
 
-      // Start of block
       const mStart = DUTY_ENDED_RE.exec(line);
       if (mStart) {
         finalize();
@@ -552,8 +398,7 @@
   }
 
   function normalizeDateInputToDate(el) {
-    // input[type=date] gives "YYYY-MM-DD" or "".
-    const v = (el.value || "").trim();
+    const v = (el.value || "").trim(); // "YYYY-MM-DD" or ""
     if (!v) return null;
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
     if (!m) return null;
@@ -573,43 +418,18 @@
     el.textContent = msg || "";
   }
 
-  // -------------------- unlock flow --------------------
-  let currentMode = null; // "__MASTER__" or "F#"
-  function unlockWithKey(key) {
-    const mapped = adminKeyToCallsign(key);
-    if (!mapped) return {ok:false, msg:"Invalid admin key. Use ADMIN_1 … ADMIN_12 or ADMIN_Master."};
-    currentMode = mapped;
+  // -------------------- DOM --------------------
+  const logsEl = document.getElementById("logs");
+  const startDateEl = document.getElementById("startDate");
+  const endDateEl = document.getElementById("endDate");
+  const getHoursBtn = document.getElementById("getHoursBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const appErr = document.getElementById("appErr");
+  const appOk = document.getElementById("appOk");
+  const kpiTotal = document.getElementById("kpiTotal");
+  const resultsBody = document.getElementById("resultsBody");
+  const footNote = document.getElementById("footNote");
 
-    lockScreen.classList.add("hidden");
-    app.classList.remove("hidden");
-
-    if (currentMode === "__MASTER__") {
-      whoami.textContent = "ADMIN_Master (all callsigns)";
-      modePill.textContent = "Master";
-      subline.textContent = "Master view: totals for all callsigns in the pasted logs.";
-      kpiView.textContent = "All callsigns";
-    } else {
-      whoami.textContent = key + " → " + currentMode;
-      modePill.textContent = currentMode;
-      subline.textContent = "Personal view: only " + currentMode + " will be shown.";
-      kpiView.textContent = currentMode;
-    }
-    setError(lockErr, "");
-    adminKeyEl.value = "";
-    logsEl.focus();
-    return {ok:true};
-  }
-
-  unlockBtn.addEventListener("click", () => {
-    const key = (adminKeyEl.value || "").trim();
-    const r = unlockWithKey(key);
-    if (!r.ok) setError(lockErr, r.msg);
-  });
-  adminKeyEl.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") unlockBtn.click();
-  });
-
-  // -------------------- app actions --------------------
   function renderResults(rows, grandTotalMinutes, meta) {
     resultsBody.innerHTML = "";
     if (!rows.length) {
@@ -617,7 +437,7 @@
       const td = document.createElement("td");
       td.colSpan = 2;
       td.style.color = "var(--muted)";
-      td.textContent = "No matching Duty Ended shifts found for that view / date range.";
+      td.textContent = "No matching Duty Ended shifts found in that date range.";
       tr.appendChild(td);
       resultsBody.appendChild(tr);
     } else {
@@ -654,7 +474,6 @@
 
     const shifts = extractShiftsFromText(text);
 
-    // filter + totals
     const totals = {}; // callsign -> minutes
     let parsedBlocks = 0;
 
@@ -665,33 +484,19 @@
       totals[s.callsign] = (totals[s.callsign] || 0) + s.minutes;
     }
 
-    let rows = [];
-    let grand = 0;
-
-    if (currentMode === "__MASTER__") {
-      for (let i=1;i<=12;i++){
-        const cs = "F"+i;
-        const mins = totals[cs] || 0;
-        if (mins > 0) rows.push({callsign: cs, minutes: mins});
-      }
-      rows.sort((a,b) => a.callsign.localeCompare(b.callsign));
-      grand = rows.reduce((acc,r)=>acc+r.minutes,0);
-      kpiView.textContent = "All callsigns";
-    } else {
-      const mins = totals[currentMode] || 0;
-      if (mins > 0) rows = [{callsign: currentMode, minutes: mins}];
-      grand = mins;
-      kpiView.textContent = currentMode;
+    const rows = [];
+    for (let i=1;i<=12;i++){
+      const cs = "F"+i;
+      const mins = totals[cs] || 0;
+      if (mins > 0) rows.push({callsign: cs, minutes: mins});
     }
+    rows.sort((a,b) => a.callsign.localeCompare(b.callsign));
 
-    const meta = `Parsed ${parsedBlocks} Duty Ended blocks. Showing results for: ${currentMode === "__MASTER__" ? "all callsigns" : currentMode}.`;
+    const grand = rows.reduce((acc,r)=>acc+r.minutes,0);
+    const meta = `Parsed ${parsedBlocks} Duty Ended blocks. Showing totals for all callsigns.`;
     renderResults(rows, grand, meta);
 
-    if (grand === 0) {
-      setOk(appOk, "");
-    } else {
-      setOk(appOk, "Done.");
-    }
+    if (grand > 0) setOk(appOk, "Done.");
   }
 
   getHoursBtn.addEventListener("click", compute);
@@ -704,18 +509,7 @@
     logsEl.focus();
   });
 
-  lockBtn.addEventListener("click", () => {
-    currentMode = null;
-    app.classList.add("hidden");
-    lockScreen.classList.remove("hidden");
-    modePill.textContent = "Locked";
-    setError(lockErr, "");
-    adminKeyEl.value = "";
-    adminKeyEl.focus();
-  });
-
-  // Start focused on key input
-  adminKeyEl.focus();
+  logsEl.focus();
 })();
 </script>
 </body>
