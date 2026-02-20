@@ -19,11 +19,11 @@ body{
   margin:0;
   font-family:var(--sans);
   color:var(--text);
-  background:#000; /* fallback if video fails */
+  background:#000; /* fallback */
   overflow-x:hidden;
 }
 
-/* ===== VIDEO BACKGROUND (RAW) ===== */
+/* ===== VIDEO BACKGROUND (RAW, NO TINT) ===== */
 .bg-video-wrap{
   position:fixed;
   inset:0;
@@ -38,12 +38,8 @@ body{
   height:100%;
   object-fit:cover;
   object-position:center;
-  filter:none;           /* no tinting */
-  opacity:1;             /* ensure visible */
+  filter:none;
 }
-
-/* IMPORTANT: overlay removed completely */
-/* .video-overlay { display:none; } */
 
 /* ===== CONTENT ===== */
 .wrap{
@@ -81,7 +77,6 @@ body{
   .grid{grid-template-columns:1.2fr .8fr;}
 }
 
-/* Cards stay slightly dark so text is readable */
 .card{
   background:rgba(10,12,18,0.55);
   border:1px solid rgba(255,255,255,.15);
@@ -143,6 +138,22 @@ button.secondary{
   backdrop-filter:blur(8px);
 }
 
+.error,.ok{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:13px;
+  display:none;
+}
+.error{
+  background:rgba(255,100,100,.15);
+  border:1px solid rgba(255,100,100,.4);
+}
+.ok{
+  background:rgba(124,255,167,.15);
+  border:1px solid rgba(124,255,167,.4);
+}
+
 table{
   width:100%;
   border-collapse:collapse;
@@ -173,6 +184,7 @@ tr:last-child td{border-bottom:none;}
 }
 .kpi .t{color:var(--muted);font-size:12px;}
 .kpi .v{font-size:20px;font-weight:700;margin-top:4px;}
+.foot{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.35;}
 </style>
 </head>
 
@@ -182,13 +194,12 @@ tr:last-child td{border-bottom:none;}
       <source src="./UKFRS_website_video.mp4" type="video/mp4">
     </video>
   </div>
-  <!-- overlay removed -->
 
   <div class="wrap">
     <div class="top">
       <div class="brand">
         <h1>Duty Hours Tracker</h1>
-        <p>Paste Duty Logger exports and calculate totals.</p>
+        <p>Paste Duty Logger exports and calculate totals (filtered by Ended date).</p>
       </div>
       <div class="pill">All callsigns</div>
     </div>
@@ -200,11 +211,11 @@ tr:last-child td{border-bottom:none;}
 
         <div class="row">
           <div>
-            <label>Start date</label>
+            <label>Start date (inclusive)</label>
             <input type="date" id="startDate">
           </div>
           <div>
-            <label>End date</label>
+            <label>End date (inclusive)</label>
             <input type="date" id="endDate">
           </div>
         </div>
@@ -213,6 +224,10 @@ tr:last-child td{border-bottom:none;}
           <button id="getHoursBtn">Get hours</button>
           <button id="clearBtn" class="secondary">Clear</button>
         </div>
+
+        <div id="appErr" class="error"></div>
+        <div id="appOk" class="ok"></div>
+        <div class="foot" id="meta"></div>
       </div>
 
       <div class="card">
@@ -243,84 +258,263 @@ tr:last-child td{border-bottom:none;}
   </div>
 
 <script>
-const DUTY_ENDED_RE = /\b(F(?:[1-9]|1[0-2]))\s*[—–-]\s*Duty\s+Ended\b/i;
-const CALLSIGN_LINE_RE = /^\s*Callsign:\s*(F(?:[1-9]|1[0-2]))\s*$/i;
-const DURATION_LINE_RE = /^\s*Duration:\s*(.+?)\s*$/i;
-const ENDED_LINE_RE = /^\s*Ended:\s*(.+?)\s*$/i;
-
-function durationToMinutes(t){
-  const h=(/(\d+)\s*h/i.exec(t)||[])[1]||0;
-  const m=(/(\d+)\s*m/i.exec(t)||[])[1]||0;
-  return Number(h)*60 + Number(m);
-}
-function minutesToHHMM(t){
-  const h=Math.floor(t/60), m=t%60;
-  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
-}
-
-function extract(logText){
-  const lines = (logText || "").split("\n");
-  const shifts=[];
-  let inBlock=false, cs=null, mins=null;
-
-  function finalize(){
-    if(inBlock && cs && mins!=null && mins>0) shifts.push({cs, mins});
-    inBlock=false; cs=null; mins=null;
+(() => {
+  // Make autoplay more reliable (some browsers need a nudge)
+  const v = document.getElementById("bg-video");
+  if (v) {
+    v.muted = true;
+    const tryPlay = () => v.play().catch(()=>{});
+    document.addEventListener("click", tryPlay, { once:true });
+    document.addEventListener("touchstart", tryPlay, { once:true });
+    tryPlay();
   }
 
-  for(const line of lines){
-    const mStart = DUTY_ENDED_RE.exec(line);
-    if(mStart){ finalize(); inBlock=true; cs=mStart[1].toUpperCase(); continue; }
-    if(!inBlock) continue;
+  // ---------- patterns ----------
+  const CALLSIGN_RE = /^(F(?:[1-9]|1[0-2]))$/i;
+  const DUTY_ENDED_RE = /\b(F(?:[1-9]|1[0-2]))\s*[—–-]\s*Duty\s+Ended\b/i;
+  const CALLSIGN_LINE_RE = /^\s*Callsign:\s*(F(?:[1-9]|1[0-2]))\s*$/i;
+  const DURATION_LINE_RE = /^\s*Duration:\s*(.+?)\s*$/i;
+  const ENDED_LINE_RE = /^\s*Ended:\s*(.+?)\s*$/i;
 
-    const mCS = CALLSIGN_LINE_RE.exec(line);
-    if(mCS) cs=mCS[1].toUpperCase();
+  const MONTHS = {
+    january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11
+  };
 
-    const mDur = DURATION_LINE_RE.exec(line);
-    if(mDur) mins = durationToMinutes(mDur[1]);
-
-    const mEnd = ENDED_LINE_RE.exec(line);
-    if(mEnd) finalize();
+  // ---------- utilities ----------
+  function durationToMinutes(t){
+    const mh = /(\d+)\s*h/i.exec(t || "");
+    const mm = /(\d+)\s*m/i.exec(t || "");
+    const h = mh ? Number(mh[1]) : 0;
+    const m = mm ? Number(mm[1]) : 0;
+    return h*60 + m;
   }
-  finalize();
-  return shifts;
-}
-
-document.getElementById("getHoursBtn").onclick=()=>{
-  const logs=document.getElementById("logs").value || "";
-  const resultsBody=document.getElementById("resultsBody");
-  const kpiTotal=document.getElementById("kpiTotal");
-
-  resultsBody.innerHTML="";
-  const shifts=extract(logs);
-
-  const totals={};
-  for(const s of shifts){
-    totals[s.cs]=(totals[s.cs]||0)+s.mins;
+  function minutesToHHMM(t){
+    const h=Math.floor(t/60), m=t%60;
+    return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
   }
 
-  let grand=0;
-  const keys = Object.keys(totals).sort();
-  if(keys.length === 0){
+  function isValidYMD(y,m,d){
+    const dt = new Date(y,m,d);
+    return Number.isInteger(y) && Number.isInteger(m) && Number.isInteger(d) &&
+      y>=1970 && y<=2100 && m>=0 && m<=11 && d>=1 && d<=31 &&
+      dt.getFullYear()===y && dt.getMonth()===m && dt.getDate()===d;
+  }
+
+  // Parses Ended line into a Date (local midnight), supports multiple formats.
+  function parseEndedToDate(endedText){
+    let t = String(endedText || "").trim();
+
+    // Remove "[21:11]" style prefixes
+    t = t.replace(/^\[\d{1,2}:\d{2}\]\s*/, "");
+
+    // A) Day-first with optional weekday:
+    // "Sunday 15 February 2026 20:32"
+    // "15 February 2026 20:32"
+    const mA = /^(?:[A-Za-z]+(?:day)?[,\s]+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
+    if (mA) {
+      const day = Number(mA[1]);
+      const mon = MONTHS[mA[2].toLowerCase()];
+      const year = Number(mA[3]);
+      if (mon === undefined || !isValidYMD(year, mon, day)) return null;
+      return new Date(year, mon, day);
+    }
+
+    // B) Month-name with optional weekday and commas:
+    // "Thursday, January 29, 2026 10:04 PM"
+    // "January 29, 2026 10:04 PM"
+    const mB = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
+    if (mB) {
+      const mon = MONTHS[mB[1].toLowerCase()];
+      const day = Number(mB[2]);
+      const year = Number(mB[3]);
+      if (mon === undefined || !isValidYMD(year, mon, day)) return null;
+      return new Date(year, mon, day);
+    }
+
+    // C) Numeric date with time (support M/D or D/M):
+    // If first number > 12 => D/M else M/D
+    const mC = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?\s*$/i.exec(t);
+    if (mC) {
+      const a = Number(mC[1]);
+      const b = Number(mC[2]);
+      const year = Number(mC[3]);
+      let mo, day;
+      if (a > 12) { day = a; mo = b - 1; } else { mo = a - 1; day = b; }
+      if (!isValidYMD(year, mo, day)) return null;
+      return new Date(year, mo, day);
+    }
+
+    // D) Numeric date + 24h time (no AM/PM)
+    const mD = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s*$/.exec(t);
+    if (mD) {
+      const a = Number(mD[1]);
+      const b = Number(mD[2]);
+      const year = Number(mD[3]);
+      let mo, day;
+      if (a > 12) { day = a; mo = b - 1; } else { mo = a - 1; day = b; }
+      if (!isValidYMD(year, mo, day)) return null;
+      return new Date(year, mo, day);
+    }
+
+    return null;
+  }
+
+  // Extract Duty Ended blocks into records: {callsign, endedDate, minutes}
+  function extractRecords(logText){
+    const lines = String(logText || "").split("\n");
+    const records = [];
+
+    let inBlock=false;
+    let block_callsign=null;
+    let block_minutes=null;
+    let block_endedDate=null;
+
+    function finalize(){
+      if (!inBlock) return;
+      if (
+        block_callsign &&
+        CALLSIGN_RE.test(block_callsign) &&
+        block_minutes != null &&
+        block_minutes > 0 &&
+        block_endedDate instanceof Date
+      ) {
+        records.push({
+          callsign: block_callsign.toUpperCase(),
+          ended: block_endedDate,
+          minutes: block_minutes
+        });
+      }
+      inBlock=false;
+      block_callsign=null;
+      block_minutes=null;
+      block_endedDate=null;
+    }
+
+    for (const line of lines) {
+      const mStart = DUTY_ENDED_RE.exec(line);
+      if (mStart) {
+        finalize();
+        inBlock = true;
+        block_callsign = (mStart[1] || "").toUpperCase();
+        continue;
+      }
+      if (!inBlock) continue;
+
+      const mCS = CALLSIGN_LINE_RE.exec(line);
+      if (mCS) { block_callsign = (mCS[1] || "").toUpperCase(); continue; }
+
+      const mDur = DURATION_LINE_RE.exec(line);
+      if (mDur) { block_minutes = durationToMinutes(mDur[1]); continue; }
+
+      const mEnd = ENDED_LINE_RE.exec(line);
+      if (mEnd) {
+        block_endedDate = parseEndedToDate(mEnd[1]);
+        finalize();
+        continue;
+      }
+    }
+    finalize();
+    return records;
+  }
+
+  // Convert <input type="date"> to Date at local midnight
+  function inputDate(el){
+    const v = (el.value || "").trim(); // "YYYY-MM-DD"
+    if (!v) return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    if (!m) return null;
+    const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
+    if (!isValidYMD(y, mo, d)) return null;
+    return new Date(y, mo, d);
+  }
+
+  // ---------- UI ----------
+  const logsEl = document.getElementById("logs");
+  const startEl = document.getElementById("startDate");
+  const endEl = document.getElementById("endDate");
+  const resultsBody = document.getElementById("resultsBody");
+  const kpiTotal = document.getElementById("kpiTotal");
+  const appErr = document.getElementById("appErr");
+  const appOk = document.getElementById("appOk");
+  const metaEl = document.getElementById("meta");
+
+  function show(el, msg){
+    el.style.display = msg ? "block" : "none";
+    el.textContent = msg || "";
+  }
+
+  function renderTotals(totals){
+    resultsBody.innerHTML = "";
+    const keys = Object.keys(totals).sort();
+    if (keys.length === 0){
+      resultsBody.innerHTML = '<tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>';
+      kpiTotal.textContent = "00:00";
+      return 0;
+    }
+
+    let grand = 0;
+    for (const cs of keys){
+      const mins = totals[cs];
+      grand += mins;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${cs}</td><td>${minutesToHHMM(mins)}</td>`;
+      resultsBody.appendChild(tr);
+    }
+    kpiTotal.textContent = minutesToHHMM(grand);
+    return grand;
+  }
+
+  document.getElementById("getHoursBtn").addEventListener("click", () => {
+    show(appErr, "");
+    show(appOk, "");
+    metaEl.textContent = "";
+
+    const text = logsEl.value || "";
+    if (!text.trim()){
+      show(appErr, "Paste logs first.");
+      return;
+    }
+
+    const start = inputDate(startEl);
+    const end = inputDate(endEl);
+    if (start && end && start.getTime() > end.getTime()){
+      show(appErr, "Start date must be on or before End date.");
+      return;
+    }
+
+    const records = extractRecords(text);
+
+    const totals = {}; // callsign -> minutes
+    let kept = 0;
+
+    for (const r of records){
+      // Inclusive filtering by Ended date
+      if (start && r.ended.getTime() < start.getTime()) continue;
+      if (end && r.ended.getTime() > end.getTime()) continue;
+      totals[r.callsign] = (totals[r.callsign] || 0) + r.minutes;
+      kept++;
+    }
+
+    const grand = renderTotals(totals);
+    metaEl.textContent = `Parsed ${records.length} Duty Ended blocks. Kept ${kept} in range.`;
+    if (grand > 0) show(appOk, "Done.");
+    else show(appOk, "No matching shifts in that range.");
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    logsEl.value = "";
+    startEl.value = "";
+    endEl.value = "";
     resultsBody.innerHTML = '<tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>';
     kpiTotal.textContent = "00:00";
-    return;
-  }
+    show(appErr, "");
+    show(appOk, "");
+    metaEl.textContent = "";
+    logsEl.focus();
+  });
 
-  for(const cs of keys){
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${cs}</td><td>${minutesToHHMM(totals[cs])}</td>`;
-    resultsBody.appendChild(tr);
-    grand += totals[cs];
-  }
-  kpiTotal.textContent=minutesToHHMM(grand);
-};
-
-document.getElementById("clearBtn").onclick=()=>{
-  document.getElementById("logs").value="";
-  document.getElementById("resultsBody").innerHTML='<tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>';
-  document.getElementById("kpiTotal").textContent="00:00";
-};
+  logsEl.focus();
+})();
 </script>
 
 </body>
