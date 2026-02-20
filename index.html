@@ -19,16 +19,17 @@ body{
   margin:0;
   font-family:var(--sans);
   color:var(--text);
-  background:#0b1020;
+  background:#000; /* fallback if video fails */
   overflow-x:hidden;
 }
 
-/* ===== VIDEO BACKGROUND (NO FILTER) ===== */
+/* ===== VIDEO BACKGROUND (RAW) ===== */
 .bg-video-wrap{
   position:fixed;
   inset:0;
   z-index:-5;
   overflow:hidden;
+  background:#000;
 }
 #bg-video{
   position:absolute;
@@ -37,21 +38,12 @@ body{
   height:100%;
   object-fit:cover;
   object-position:center;
-  filter:none; /* filter removed */
+  filter:none;           /* no tinting */
+  opacity:1;             /* ensure visible */
 }
 
-/* VERY LIGHT overlay only for readability */
-.video-overlay{
-  position:fixed;
-  inset:0;
-  z-index:-4;
-  background: linear-gradient(
-    180deg,
-    rgba(5,10,20,0.35),
-    rgba(5,10,20,0.45)
-  );
-  pointer-events:none;
-}
+/* IMPORTANT: overlay removed completely */
+/* .video-overlay { display:none; } */
 
 /* ===== CONTENT ===== */
 .wrap{
@@ -65,6 +57,7 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
+  gap:16px;
   margin-bottom:18px;
 }
 .brand h1{margin:0;font-size:28px;}
@@ -73,7 +66,7 @@ body{
 .pill{
   padding:10px 14px;
   border-radius:999px;
-  background:rgba(255,255,255,.08);
+  background:rgba(0,0,0,.35);
   border:1px solid rgba(255,255,255,.15);
   font-size:13px;
   backdrop-filter:blur(8px);
@@ -88,8 +81,9 @@ body{
   .grid{grid-template-columns:1.2fr .8fr;}
 }
 
+/* Cards stay slightly dark so text is readable */
 .card{
-  background:rgba(15,20,35,0.55);
+  background:rgba(10,12,18,0.55);
   border:1px solid rgba(255,255,255,.15);
   border-radius:var(--radius);
   padding:18px;
@@ -108,7 +102,7 @@ textarea,input[type="date"]{
   padding:12px;
   border-radius:12px;
   border:1px solid rgba(255,255,255,.15);
-  background:rgba(10,12,22,.55);
+  background:rgba(0,0,0,.35);
   color:var(--text);
   font-family:var(--sans);
 }
@@ -143,25 +137,10 @@ button{
   color:#091023;
 }
 button.secondary{
-  background:rgba(255,255,255,.08);
+  background:rgba(0,0,0,.35);
   color:var(--text);
   border:1px solid rgba(255,255,255,.2);
-}
-
-.error,.ok{
-  margin-top:10px;
-  padding:10px 12px;
-  border-radius:12px;
-  font-size:13px;
-  display:none;
-}
-.error{
-  background:rgba(255,100,100,.15);
-  border:1px solid rgba(255,100,100,.4);
-}
-.ok{
-  background:rgba(124,255,167,.15);
-  border:1px solid rgba(124,255,167,.4);
+  backdrop-filter:blur(8px);
 }
 
 table{
@@ -170,7 +149,7 @@ table{
   margin-top:12px;
   border-radius:14px;
   overflow:hidden;
-  background:rgba(255,255,255,.05);
+  background:rgba(0,0,0,.25);
 }
 th,td{
   padding:10px;
@@ -189,7 +168,7 @@ tr:last-child td{border-bottom:none;}
 .kpi .box{
   padding:12px;
   border-radius:14px;
-  background:rgba(255,255,255,.06);
+  background:rgba(0,0,0,.25);
   border:1px solid rgba(255,255,255,.12);
 }
 .kpi .t{color:var(--muted);font-size:12px;}
@@ -198,77 +177,72 @@ tr:last-child td{border-bottom:none;}
 </head>
 
 <body>
-
-<div class="bg-video-wrap">
-  <video id="bg-video" autoplay muted loop playsinline preload="auto">
-    <source src="./UKFRS_website_video.mp4" type="video/mp4">
-  </video>
-</div>
-<div class="video-overlay"></div>
-
-<div class="wrap">
-  <div class="top">
-    <div class="brand">
-      <h1>Duty Hours Tracker</h1>
-      <p>Paste Duty Logger exports and calculate totals.</p>
-    </div>
-    <div class="pill">All callsigns</div>
+  <div class="bg-video-wrap" aria-hidden="true">
+    <video id="bg-video" autoplay muted loop playsinline preload="auto">
+      <source src="./UKFRS_website_video.mp4" type="video/mp4">
+    </video>
   </div>
+  <!-- overlay removed -->
 
-  <div class="grid">
-    <div class="card">
-      <label>Duty Logger export</label>
-      <textarea id="logs"></textarea>
-
-      <div class="row">
-        <div>
-          <label>Start date</label>
-          <input type="date" id="startDate">
-        </div>
-        <div>
-          <label>End date</label>
-          <input type="date" id="endDate">
-        </div>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <h1>Duty Hours Tracker</h1>
+        <p>Paste Duty Logger exports and calculate totals.</p>
       </div>
-
-      <div class="btnrow">
-        <button id="getHoursBtn">Get hours</button>
-        <button id="clearBtn" class="secondary">Clear</button>
-      </div>
-
-      <div id="appErr" class="error"></div>
-      <div id="appOk" class="ok"></div>
+      <div class="pill">All callsigns</div>
     </div>
 
-    <div class="card">
-      <div class="kpi">
-        <div class="box">
-          <div class="t">View</div>
-          <div class="v">All callsigns</div>
+    <div class="grid">
+      <div class="card">
+        <label>Duty Logger export</label>
+        <textarea id="logs"></textarea>
+
+        <div class="row">
+          <div>
+            <label>Start date</label>
+            <input type="date" id="startDate">
+          </div>
+          <div>
+            <label>End date</label>
+            <input type="date" id="endDate">
+          </div>
         </div>
-        <div class="box">
-          <div class="t">Total time</div>
-          <div class="v" id="kpiTotal">00:00</div>
+
+        <div class="btnrow">
+          <button id="getHoursBtn">Get hours</button>
+          <button id="clearBtn" class="secondary">Clear</button>
         </div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Callsign</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody id="resultsBody">
-          <tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>
-        </tbody>
-      </table>
+      <div class="card">
+        <div class="kpi">
+          <div class="box">
+            <div class="t">View</div>
+            <div class="v">All callsigns</div>
+          </div>
+          <div class="box">
+            <div class="t">Total time</div>
+            <div class="v" id="kpiTotal">00:00</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Callsign</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
-</div>
 
 <script>
-const CALLSIGN_RE = /^(F(?:[1-9]|1[0-2]))$/i;
 const DUTY_ENDED_RE = /\b(F(?:[1-9]|1[0-2]))\s*[—–-]\s*Duty\s+Ended\b/i;
 const CALLSIGN_LINE_RE = /^\s*Callsign:\s*(F(?:[1-9]|1[0-2]))\s*$/i;
 const DURATION_LINE_RE = /^\s*Duration:\s*(.+?)\s*$/i;
@@ -277,32 +251,35 @@ const ENDED_LINE_RE = /^\s*Ended:\s*(.+?)\s*$/i;
 function durationToMinutes(t){
   const h=(/(\d+)\s*h/i.exec(t)||[])[1]||0;
   const m=(/(\d+)\s*m/i.exec(t)||[])[1]||0;
-  return h*60+m*1;
+  return Number(h)*60 + Number(m);
 }
 function minutesToHHMM(t){
-  const h=Math.floor(t/60),m=t%60;
+  const h=Math.floor(t/60), m=t%60;
   return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
 }
 
 function extract(logText){
-  const lines=logText.split("\n");
+  const lines = (logText || "").split("\n");
   const shifts=[];
-  let inBlock=false,cs=null,mins=null;
+  let inBlock=false, cs=null, mins=null;
 
   function finalize(){
-    if(inBlock && cs && mins>0) shifts.push({cs,mins});
-    inBlock=false;cs=null;mins=null;
+    if(inBlock && cs && mins!=null && mins>0) shifts.push({cs, mins});
+    inBlock=false; cs=null; mins=null;
   }
 
   for(const line of lines){
-    const mStart=DUTY_ENDED_RE.exec(line);
+    const mStart = DUTY_ENDED_RE.exec(line);
     if(mStart){ finalize(); inBlock=true; cs=mStart[1].toUpperCase(); continue; }
     if(!inBlock) continue;
-    const mCS=CALLSIGN_LINE_RE.exec(line);
+
+    const mCS = CALLSIGN_LINE_RE.exec(line);
     if(mCS) cs=mCS[1].toUpperCase();
-    const mDur=DURATION_LINE_RE.exec(line);
-    if(mDur) mins=durationToMinutes(mDur[1]);
-    const mEnd=ENDED_LINE_RE.exec(line);
+
+    const mDur = DURATION_LINE_RE.exec(line);
+    if(mDur) mins = durationToMinutes(mDur[1]);
+
+    const mEnd = ENDED_LINE_RE.exec(line);
     if(mEnd) finalize();
   }
   finalize();
@@ -310,22 +287,35 @@ function extract(logText){
 }
 
 document.getElementById("getHoursBtn").onclick=()=>{
-  const logs=document.getElementById("logs").value;
+  const logs=document.getElementById("logs").value || "";
   const resultsBody=document.getElementById("resultsBody");
   const kpiTotal=document.getElementById("kpiTotal");
+
   resultsBody.innerHTML="";
   const shifts=extract(logs);
+
   const totals={};
-  shifts.forEach(s=> totals[s.cs]=(totals[s.cs]||0)+s.mins);
+  for(const s of shifts){
+    totals[s.cs]=(totals[s.cs]||0)+s.mins;
+  }
+
   let grand=0;
-  Object.keys(totals).sort().forEach(cs=>{
+  const keys = Object.keys(totals).sort();
+  if(keys.length === 0){
+    resultsBody.innerHTML = '<tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>';
+    kpiTotal.textContent = "00:00";
+    return;
+  }
+
+  for(const cs of keys){
     const tr=document.createElement("tr");
     tr.innerHTML=`<td>${cs}</td><td>${minutesToHHMM(totals[cs])}</td>`;
     resultsBody.appendChild(tr);
-    grand+=totals[cs];
-  });
+    grand += totals[cs];
+  }
   kpiTotal.textContent=minutesToHHMM(grand);
 };
+
 document.getElementById("clearBtn").onclick=()=>{
   document.getElementById("logs").value="";
   document.getElementById("resultsBody").innerHTML='<tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>';
