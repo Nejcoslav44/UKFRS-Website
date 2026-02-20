@@ -1,556 +1,338 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Duty Hours Tracker</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Duty Hours Tracker</title>
 
-  <style>
-    :root{
-      --bg0:#0b1020;
-      --bg1:#0f1730;
-      --card:rgba(255,255,255,.06);
-      --text:#e9ecf5;
-      --muted:#aeb7d3;
-      --shadow: 0 20px 60px rgba(0,0,0,.45);
-      --radius: 18px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+<style>
+:root{
+  --text:#e9ecf5;
+  --muted:#aeb7d3;
+  --radius:18px;
+  --mono: ui-monospace, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:var(--sans);
+  color:var(--text);
+  background:#0b1020;
+  overflow-x:hidden;
+}
 
-    body{
-      margin:0;
-      font-family:var(--sans);
-      color:var(--text);
-      overflow-x:hidden;
-      background: linear-gradient(180deg, var(--bg0), var(--bg1));
-    }
+/* ===== VIDEO BACKGROUND (NO FILTER) ===== */
+.bg-video-wrap{
+  position:fixed;
+  inset:0;
+  z-index:-5;
+  overflow:hidden;
+}
+#bg-video{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  filter:none; /* filter removed */
+}
 
-    /* ===== VIDEO BACKGROUND ===== */
-    #bg-video{
-      position:fixed;
-      inset:0;
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      z-index:-2;
-      filter: brightness(0.60) contrast(1.06) saturate(1.04);
-    }
-    .video-overlay{
-      position:fixed;
-      inset:0;
-      z-index:-1;
-      background:
-        radial-gradient(1200px 600px at 20% 10%, rgba(122,162,255,.22), transparent 60%),
-        radial-gradient(900px 500px at 80% 30%, rgba(124,255,167,.12), transparent 60%),
-        radial-gradient(700px 420px at 30% 90%, rgba(255,107,107,.10), transparent 55%),
-        linear-gradient(180deg, rgba(5,10,20,0.82), rgba(5,10,20,0.92));
-    }
+/* VERY LIGHT overlay only for readability */
+.video-overlay{
+  position:fixed;
+  inset:0;
+  z-index:-4;
+  background: linear-gradient(
+    180deg,
+    rgba(5,10,20,0.35),
+    rgba(5,10,20,0.45)
+  );
+  pointer-events:none;
+}
 
-    .wrap{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 42px 18px 64px;
-    }
-    .top{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom: 18px;
-    }
-    .brand{display:flex;flex-direction:column;gap:6px;}
-    .brand h1{margin:0;font-size:28px;letter-spacing:.2px;}
-    .brand p{margin:0;color:var(--muted);font-size:14px;line-height:1.4;}
-    .pill{
-      display:inline-flex;gap:10px;align-items:center;
-      padding:10px 12px;border-radius:999px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      color: var(--muted);font-size:13px;user-select:none;white-space:nowrap;
-      backdrop-filter: blur(10px);
-    }
-    .pill strong{color:var(--text); font-weight:600}
+/* ===== CONTENT ===== */
+.wrap{
+  max-width:980px;
+  margin:0 auto;
+  padding:42px 18px 64px;
+  position:relative;
+  z-index:1;
+}
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:18px;
+}
+.brand h1{margin:0;font-size:28px;}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:14px;}
 
-    .grid{display:grid;grid-template-columns:1fr;gap:14px;}
-    @media (min-width: 920px){ .grid{grid-template-columns: 1.25fr .75fr;} }
+.pill{
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  font-size:13px;
+  backdrop-filter:blur(8px);
+}
 
-    .card{
-      background: rgba(15,20,35,0.62);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 18px;
-      backdrop-filter: blur(14px);
-    }
-    .card h2{margin:0 0 10px 0;font-size:16px;letter-spacing:.2px;color:var(--text);}
+.grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:14px;
+}
+@media(min-width:920px){
+  .grid{grid-template-columns:1.2fr .8fr;}
+}
 
-    label{display:block;color:var(--muted);font-size:13px;margin:10px 0 6px;}
-    input[type="date"], textarea{
-      width:100%;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(10,12,22,.55);
-      color: var(--text);
-      outline: none;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
-      font-family: var(--sans);
-      transition: border .15s ease, background .15s ease;
-    }
-    input[type="date"]:focus, textarea:focus{
-      border-color: rgba(122,162,255,.65);
-      background: rgba(10,12,22,.70);
-    }
-    textarea{
-      min-height: 280px;
-      resize: vertical;
-      font-family: var(--mono);
-      font-size: 12.5px;
-      line-height: 1.45;
-    }
+.card{
+  background:rgba(15,20,35,0.55);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:var(--radius);
+  padding:18px;
+  backdrop-filter:blur(14px);
+}
 
-    .row{display:flex;gap:10px;flex-wrap:wrap;}
-    .row > *{flex: 1 1 160px}
-    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+label{
+  display:block;
+  color:var(--muted);
+  font-size:13px;
+  margin:10px 0 6px;
+}
 
-    button{
-      appearance:none;border:none;cursor:pointer;
-      padding: 12px 14px;border-radius: 14px;
-      font-weight: 650;letter-spacing:.2px;
-      background: linear-gradient(135deg, rgba(122,162,255,.95), rgba(124,255,167,.70));
-      color: #091023;
-      box-shadow: 0 14px 30px rgba(0,0,0,.35);
-      transition: transform .12s ease, filter .12s ease, opacity .12s ease;
-    }
-    button.secondary{
-      background: rgba(255,255,255,.08);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,.14);
-      box-shadow: none;
-      backdrop-filter: blur(10px);
-    }
-    button:active{transform: translateY(1px) scale(.99)}
+textarea,input[type="date"]{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(10,12,22,.55);
+  color:var(--text);
+  font-family:var(--sans);
+}
 
-    .hint{margin-top:10px;color:var(--muted);font-size:12.5px;line-height:1.45;}
+textarea{
+  min-height:260px;
+  resize:vertical;
+  font-family:var(--mono);
+  font-size:12px;
+}
 
-    .error{
-      margin-top: 10px;padding: 10px 12px;border-radius: 12px;
-      border: 1px solid rgba(255,107,107,.35);
-      background: rgba(255,107,107,.10);
-      color: #ffd7d7;font-size: 13px;display:none;
-    }
-    .ok{
-      margin-top: 10px;padding: 10px 12px;border-radius: 12px;
-      border: 1px solid rgba(124,255,167,.25);
-      background: rgba(124,255,167,.10);
-      color: #d7ffe7;font-size: 13px;display:none;
-    }
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.row>*{flex:1}
 
-    table{
-      width:100%;
-      border-collapse: collapse;
-      overflow:hidden;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-    }
-    th, td{
-      text-align:left;
-      padding: 10px 10px;
-      font-size: 13px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-    th{color: var(--muted); font-weight: 650;}
-    tr:last-child td{border-bottom:none;}
+.btnrow{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
+}
 
-    .kpi{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .kpi .box{
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-      padding: 12px;
-    }
-    .kpi .box .t{color: var(--muted); font-size: 12px}
-    .kpi .box .v{font-size: 20px; font-weight: 750; margin-top: 4px}
-    .foot{margin-top: 16px;color:var(--muted);font-size:12px;line-height:1.45;}
-  </style>
+button{
+  padding:12px 16px;
+  border-radius:14px;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+  background:linear-gradient(135deg,#7aa2ff,#7cffc7);
+  color:#091023;
+}
+button.secondary{
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.2);
+}
+
+.error,.ok{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:13px;
+  display:none;
+}
+.error{
+  background:rgba(255,100,100,.15);
+  border:1px solid rgba(255,100,100,.4);
+}
+.ok{
+  background:rgba(124,255,167,.15);
+  border:1px solid rgba(124,255,167,.4);
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:12px;
+  border-radius:14px;
+  overflow:hidden;
+  background:rgba(255,255,255,.05);
+}
+th,td{
+  padding:10px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+  font-size:13px;
+}
+th{color:var(--muted);}
+tr:last-child td{border-bottom:none;}
+
+.kpi{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+.kpi .box{
+  padding:12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+}
+.kpi .t{color:var(--muted);font-size:12px;}
+.kpi .v{font-size:20px;font-weight:700;margin-top:4px;}
+</style>
 </head>
 
 <body>
-  <!-- Put your MP4 in the repo root and name it exactly like this -->
-  <video autoplay muted loop playsinline id="bg-video">
-    <source src="UKFRS_website_video.mp4" type="video/mp4" />
+
+<div class="bg-video-wrap">
+  <video id="bg-video" autoplay muted loop playsinline preload="auto">
+    <source src="./UKFRS_website_video.mp4" type="video/mp4">
   </video>
-  <div class="video-overlay"></div>
+</div>
+<div class="video-overlay"></div>
 
-  <div class="wrap">
-    <div class="top">
-      <div class="brand">
-        <h1>Duty Hours Tracker</h1>
-        <p>Paste Duty Logger exports, optionally filter by date, and calculate totals for everyone.</p>
-      </div>
-      <div class="pill"><strong>View:</strong> <span>All callsigns</span></div>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <h1>Duty Hours Tracker</h1>
+      <p>Paste Duty Logger exports and calculate totals.</p>
     </div>
-
-    <div class="grid">
-      <div class="card">
-        <h2>Input</h2>
-
-        <label for="logs">Duty Logger export (paste here)</label>
-        <textarea id="logs" placeholder="Paste your Duty Logger logs here..."></textarea>
-
-        <div class="row">
-          <div>
-            <label for="startDate">Start date (inclusive)</label>
-            <input id="startDate" type="date" />
-          </div>
-          <div>
-            <label for="endDate">End date (inclusive)</label>
-            <input id="endDate" type="date" />
-          </div>
-        </div>
-
-        <div class="btnrow">
-          <button id="getHoursBtn">Get hours</button>
-          <button id="clearBtn" class="secondary">Clear</button>
-        </div>
-
-        <div class="hint">
-          We count only <span style="font-family:var(--mono)">Duty Ended</span> blocks with:
-          <span style="font-family:var(--mono)">Callsign</span>, <span style="font-family:var(--mono)">Duration</span>, and a parseable <span style="font-family:var(--mono)">Ended</span> date.
-        </div>
-
-        <div id="appErr" class="error"></div>
-        <div id="appOk" class="ok"></div>
-      </div>
-
-      <div class="card">
-        <h2>Results</h2>
-
-        <div class="kpi">
-          <div class="box">
-            <div class="t">Selected view</div>
-            <div class="v">All callsigns</div>
-          </div>
-          <div class="box">
-            <div class="t">Total time</div>
-            <div class="v" id="kpiTotal">00:00</div>
-          </div>
-        </div>
-
-        <div style="margin-top:12px; overflow:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Callsign</th>
-                <th>Total (HH:MM)</th>
-              </tr>
-            </thead>
-            <tbody id="resultsBody">
-              <tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="foot" id="footNote"></div>
-      </div>
-    </div>
+    <div class="pill">All callsigns</div>
   </div>
 
-  <script>
-  (() => {
-    // -------------------- parsing helpers --------------------
-    const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF]/g;
+  <div class="grid">
+    <div class="card">
+      <label>Duty Logger export</label>
+      <textarea id="logs"></textarea>
 
-    function cleanLine(s) {
-      return (s ?? "").replace(/\r?\n$/, "").replace(ZERO_WIDTH_RE, "");
-    }
+      <div class="row">
+        <div>
+          <label>Start date</label>
+          <input type="date" id="startDate">
+        </div>
+        <div>
+          <label>End date</label>
+          <input type="date" id="endDate">
+        </div>
+      </div>
 
-    // Keep exactly F1..F12
-    const CALLSIGN_RE = /^(F(?:[1-9]|1[0-2]))$/i;
-    const DUTY_ENDED_RE = /\b(F(?:[1-9]|1[0-2]))\s*[—–-]\s*Duty\s+Ended\b/i;
-    const CALLSIGN_LINE_RE = /^\s*Callsign:\s*(F(?:[1-9]|1[0-2]))\s*$/i;
-    const DURATION_LINE_RE = /^\s*Duration:\s*(.+?)\s*$/i;
-    const ENDED_LINE_RE = /^\s*Ended:\s*(.+?)\s*$/i;
+      <div class="btnrow">
+        <button id="getHoursBtn">Get hours</button>
+        <button id="clearBtn" class="secondary">Clear</button>
+      </div>
 
-    const MONTHS = {
-      january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11
-    };
+      <div id="appErr" class="error"></div>
+      <div id="appOk" class="ok"></div>
+    </div>
 
-    function isValidYMD(y, m, d) {
-      if (!Number.isInteger(y) || y < 1970 || y > 2100) return false;
-      if (!Number.isInteger(m) || m < 0 || m > 11) return false;
-      if (!Number.isInteger(d) || d < 1 || d > 31) return false;
-      const dt = new Date(y, m, d);
-      return dt.getFullYear() === y && dt.getMonth() === m && dt.getDate() === d;
-    }
+    <div class="card">
+      <div class="kpi">
+        <div class="box">
+          <div class="t">View</div>
+          <div class="v">All callsigns</div>
+        </div>
+        <div class="box">
+          <div class="t">Total time</div>
+          <div class="v" id="kpiTotal">00:00</div>
+        </div>
+      </div>
 
-    function ymdToDate(ymd) {
-      return new Date(ymd.y, ymd.m, ymd.d); // local midnight
-    }
+      <table>
+        <thead>
+          <tr>
+            <th>Callsign</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-    // Updated parser to handle multiple Ended formats (including day-first 24h)
-    function parseEndedDateToYMD(text) {
-      let t = cleanLine(text).trim();
+<script>
+const CALLSIGN_RE = /^(F(?:[1-9]|1[0-2]))$/i;
+const DUTY_ENDED_RE = /\b(F(?:[1-9]|1[0-2]))\s*[—–-]\s*Duty\s+Ended\b/i;
+const CALLSIGN_LINE_RE = /^\s*Callsign:\s*(F(?:[1-9]|1[0-2]))\s*$/i;
+const DURATION_LINE_RE = /^\s*Duration:\s*(.+?)\s*$/i;
+const ENDED_LINE_RE = /^\s*Ended:\s*(.+?)\s*$/i;
 
-      // Remove leading Discord-style time prefixes like "[21:11]"
-      t = t.replace(/^\[\d{1,2}:\d{2}\]\s*/, "");
+function durationToMinutes(t){
+  const h=(/(\d+)\s*h/i.exec(t)||[])[1]||0;
+  const m=(/(\d+)\s*m/i.exec(t)||[])[1]||0;
+  return h*60+m*1;
+}
+function minutesToHHMM(t){
+  const h=Math.floor(t/60),m=t%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
 
-      // Cut accidental trailing fragments if present.
-      t = t.replace(/\s*F999\s+Duty[\s\S]*$/i, "").trim();
+function extract(logText){
+  const lines=logText.split("\n");
+  const shifts=[];
+  let inBlock=false,cs=null,mins=null;
 
-      // A) Day-first with optional weekday:
-      //    "Sunday 15 February 2026 20:32"
-      //    "15 February 2026 20:32"
-      const mA = /^(?:[A-Za-z]+(?:day)?[,\s]+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
-      if (mA) {
-        const day = Number(mA[1]);
-        const monName = mA[2].toLowerCase();
-        const year = Number(mA[3]);
-        const mon = MONTHS[monName];
-        if (mon === undefined) return null;
-        if (!isValidYMD(year, mon, day)) return null;
-        return {y: year, m: mon, d: day};
-      }
+  function finalize(){
+    if(inBlock && cs && mins>0) shifts.push({cs,mins});
+    inBlock=false;cs=null;mins=null;
+  }
 
-      // B) Month-name with optional weekday and commas:
-      //    "Thursday, January 29, 2026 10:04 PM"
-      //    "January 29, 2026 10:04 PM"
-      const mB = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
-      if (mB) {
-        const monName = mB[1].toLowerCase();
-        const mon = MONTHS[monName];
-        if (mon === undefined) return null;
-        const day = Number(mB[2]);
-        const year = Number(mB[3]);
-        if (!isValidYMD(year, mon, day)) return null;
-        return {y: year, m: mon, d: day};
-      }
+  for(const line of lines){
+    const mStart=DUTY_ENDED_RE.exec(line);
+    if(mStart){ finalize(); inBlock=true; cs=mStart[1].toUpperCase(); continue; }
+    if(!inBlock) continue;
+    const mCS=CALLSIGN_LINE_RE.exec(line);
+    if(mCS) cs=mCS[1].toUpperCase();
+    const mDur=DURATION_LINE_RE.exec(line);
+    if(mDur) mins=durationToMinutes(mDur[1]);
+    const mEnd=ENDED_LINE_RE.exec(line);
+    if(mEnd) finalize();
+  }
+  finalize();
+  return shifts;
+}
 
-      // C) Numeric date (support both M/D/YYYY and D/M/YYYY).
-      // Disambiguation:
-      // - If first number > 12 => D/M
-      // - Else default to M/D
-      const mC = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?\s*$/i.exec(t);
-      if (mC) {
-        const a = Number(mC[1]);
-        const b = Number(mC[2]);
-        const year = Number(mC[3]);
+document.getElementById("getHoursBtn").onclick=()=>{
+  const logs=document.getElementById("logs").value;
+  const resultsBody=document.getElementById("resultsBody");
+  const kpiTotal=document.getElementById("kpiTotal");
+  resultsBody.innerHTML="";
+  const shifts=extract(logs);
+  const totals={};
+  shifts.forEach(s=> totals[s.cs]=(totals[s.cs]||0)+s.mins);
+  let grand=0;
+  Object.keys(totals).sort().forEach(cs=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${cs}</td><td>${minutesToHHMM(totals[cs])}</td>`;
+    resultsBody.appendChild(tr);
+    grand+=totals[cs];
+  });
+  kpiTotal.textContent=minutesToHHMM(grand);
+};
+document.getElementById("clearBtn").onclick=()=>{
+  document.getElementById("logs").value="";
+  document.getElementById("resultsBody").innerHTML='<tr><td colspan="2" style="color:var(--muted)">No results yet.</td></tr>';
+  document.getElementById("kpiTotal").textContent="00:00";
+};
+</script>
 
-        let mo, day;
-        if (a > 12) { day = a; mo = b - 1; } else { mo = a - 1; day = b; }
-        if (!isValidYMD(year, mo, day)) return null;
-        return {y: year, m: mo, d: day};
-      }
-
-      // D) Numeric date + 24h time (no AM/PM)
-      const mD = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s*$/.exec(t);
-      if (mD) {
-        const a = Number(mD[1]);
-        const b = Number(mD[2]);
-        const year = Number(mD[3]);
-        let mo, day;
-        if (a > 12) { day = a; mo = b - 1; } else { mo = a - 1; day = b; }
-        if (!isValidYMD(year, mo, day)) return null;
-        return {y: year, m: mo, d: day};
-      }
-
-      return null;
-    }
-
-    function durationToMinutes(text) {
-      const t = (text || "").trim();
-      const mh = /(\d+)\s*h/i.exec(t);
-      const mm = /(\d+)\s*m/i.exec(t);
-      const h = mh ? Number(mh[1]) : 0;
-      const m = mm ? Number(mm[1]) : 0;
-      return (h*60) + m;
-    }
-
-    function minutesToHHMM(total) {
-      const h = Math.floor(total/60);
-      const m = total % 60;
-      return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
-    }
-
-    function extractShiftsFromText(logText) {
-      const shifts = []; // {callsign, date:Date, minutes}
-      const lines = (logText || "").split("\n").map(cleanLine);
-
-      let inBlock = false;
-      let block_callsign = null;
-      let block_minutes = null;
-      let block_endedYMD = null;
-
-      function finalize() {
-        if (!inBlock) return;
-        if (block_callsign && CALLSIGN_RE.test(block_callsign) && block_minutes != null && block_minutes > 0 && block_endedYMD) {
-          shifts.push({callsign: block_callsign.toUpperCase(), date: ymdToDate(block_endedYMD), minutes: block_minutes});
-        }
-        inBlock = false;
-        block_callsign = null;
-        block_minutes = null;
-        block_endedYMD = null;
-      }
-
-      for (const raw of lines) {
-        const line = raw;
-
-        const mStart = DUTY_ENDED_RE.exec(line);
-        if (mStart) {
-          finalize();
-          inBlock = true;
-          block_callsign = (mStart[1] || "").toUpperCase();
-          continue;
-        }
-        if (!inBlock) continue;
-
-        const mCS = CALLSIGN_LINE_RE.exec(line);
-        if (mCS) {
-          block_callsign = (mCS[1] || "").toUpperCase();
-          continue;
-        }
-
-        const mDur = DURATION_LINE_RE.exec(line);
-        if (mDur) {
-          block_minutes = durationToMinutes(mDur[1]);
-          continue;
-        }
-
-        const mEnd = ENDED_LINE_RE.exec(line);
-        if (mEnd) {
-          block_endedYMD = parseEndedDateToYMD(mEnd[1]);
-          finalize();
-          continue;
-        }
-      }
-      finalize();
-      return shifts;
-    }
-
-    function normalizeDateInputToDate(el) {
-      const v = (el.value || "").trim(); // "YYYY-MM-DD" or ""
-      if (!v) return null;
-      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
-      if (!m) return null;
-      const y = Number(m[1]);
-      const mo = Number(m[2]) - 1;
-      const d = Number(m[3]);
-      if (!isValidYMD(y, mo, d)) return null;
-      return new Date(y, mo, d);
-    }
-
-    function setError(el, msg) {
-      el.style.display = msg ? "block" : "none";
-      el.textContent = msg || "";
-    }
-    function setOk(el, msg) {
-      el.style.display = msg ? "block" : "none";
-      el.textContent = msg || "";
-    }
-
-    // -------------------- DOM --------------------
-    const logsEl = document.getElementById("logs");
-    const startDateEl = document.getElementById("startDate");
-    const endDateEl = document.getElementById("endDate");
-    const getHoursBtn = document.getElementById("getHoursBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const appErr = document.getElementById("appErr");
-    const appOk = document.getElementById("appOk");
-    const kpiTotal = document.getElementById("kpiTotal");
-    const resultsBody = document.getElementById("resultsBody");
-    const footNote = document.getElementById("footNote");
-
-    function renderResults(rows, grandTotalMinutes, meta) {
-      resultsBody.innerHTML = "";
-      if (!rows.length) {
-        const tr = document.createElement("tr");
-        const td = document.createElement("td");
-        td.colSpan = 2;
-        td.style.color = "var(--muted)";
-        td.textContent = "No matching Duty Ended shifts found in that date range.";
-        tr.appendChild(td);
-        resultsBody.appendChild(tr);
-      } else {
-        for (const r of rows) {
-          const tr = document.createElement("tr");
-          const td1 = document.createElement("td");
-          td1.textContent = r.callsign;
-          const td2 = document.createElement("td");
-          td2.textContent = minutesToHHMM(r.minutes);
-          tr.appendChild(td1); tr.appendChild(td2);
-          resultsBody.appendChild(tr);
-        }
-      }
-      kpiTotal.textContent = minutesToHHMM(grandTotalMinutes);
-      footNote.textContent = meta;
-    }
-
-    function compute() {
-      setError(appErr, "");
-      setOk(appOk, "");
-
-      const text = logsEl.value || "";
-      if (!text.trim()) {
-        setError(appErr, "Paste logs first.");
-        return;
-      }
-
-      const start = normalizeDateInputToDate(startDateEl);
-      const end = normalizeDateInputToDate(endDateEl);
-      if (start && end && start.getTime() > end.getTime()) {
-        setError(appErr, "Start date must be on or before End date.");
-        return;
-      }
-
-      const shifts = extractShiftsFromText(text);
-
-      const totals = {}; // callsign -> minutes
-      let parsedBlocks = 0;
-
-      for (const s of shifts) {
-        parsedBlocks += 1;
-        if (start && s.date.getTime() < start.getTime()) continue;
-        if (end && s.date.getTime() > end.getTime()) continue;
-        totals[s.callsign] = (totals[s.callsign] || 0) + s.minutes;
-      }
-
-      const rows = [];
-      for (let i=1;i<=12;i++){
-        const cs = "F"+i;
-        const mins = totals[cs] || 0;
-        if (mins > 0) rows.push({callsign: cs, minutes: mins});
-      }
-      rows.sort((a,b) => a.callsign.localeCompare(b.callsign));
-
-      const grand = rows.reduce((acc,r)=>acc+r.minutes,0);
-      const meta = `Parsed ${parsedBlocks} Duty Ended blocks. Showing totals for all callsigns.`;
-      renderResults(rows, grand, meta);
-
-      if (grand > 0) setOk(appOk, "Done.");
-    }
-
-    getHoursBtn.addEventListener("click", compute);
-
-    clearBtn.addEventListener("click", () => {
-      logsEl.value = "";
-      setError(appErr, "");
-      setOk(appOk, "");
-      renderResults([], 0, "");
-      logsEl.focus();
-    });
-
-    logsEl.focus();
-  })();
-  </script>
 </body>
 </html>
 
