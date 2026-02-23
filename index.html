@@ -18,15 +18,12 @@
     --rowGreenBg: rgba(124, 255, 167, 0.16);
     --rowGreenBorder: rgba(124, 255, 167, 0.35);
 
+    /* per-division accents (overridden by body class) */
     --accentBg: #ff2b2b;
     --accentText: #ffffff;
 
-    /* HOME background image (CHANGE THIS to your actual file) */
+    /* HOME background image (set to your actual file) */
     --homeBgImage: url("F999_photo.jpg");
-    /* Examples:
-       --homeBgImage: url("F999_photo.png");
-       --homeBgImage: url("F999_photo.webp");
-    */
   }
 
   *{box-sizing:border-box}
@@ -145,7 +142,7 @@
     line-height:1.45;
   }
 
-  /* ✅ CHANGE #2: WHITE DATE PICKERS (easy to see) */
+  /* White date selectors */
   input[type="date"]{
     background: rgba(255,255,255,0.92) !important;
     color: #111 !important;
@@ -297,7 +294,7 @@
   .page{display:none;}
   .page.active{display:block;}
 
-  /* ===== HOME: WEAPON WHEEL ===== */
+  /* ===== HOME: GTA-STYLE WEAPON WHEEL (ONE CIRCLE, TWO SLICES) ===== */
   .home-center{
     min-height: calc(100vh - 120px);
     display:flex;
@@ -354,27 +351,40 @@
                 linear-gradient(135deg, #ff2b2b, #b30000);
     color:#fff;
   }
+
   .slice.hw{
     clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
     background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.12), rgba(0,0,0,.08)),
                 linear-gradient(135deg, #ffd000, #ffb300);
     color:#111;
   }
+
   .slice:hover{filter: brightness(1.05);}
 
-  .wheelText{
+  /* ✅ CRESTS (instead of text) */
+  .crest-layer{
     position:absolute;
     inset:0;
-    pointer-events:none;
+    pointer-events:none; /* clicks go through to slices */
   }
-  .wheelText text{
-    font-family: var(--sans);
-    font-weight: 900;
-    letter-spacing: 3px;
+  .crest{
+    position:absolute;
+    top:50%;
+    transform: translateY(-50%);
+    width: 118px;
+    height: 118px;
+    object-fit: contain;
+    filter: drop-shadow(0 12px 22px rgba(0,0,0,.45));
+    opacity: 0.98;
   }
-  .wheelText .frsText{ fill:#ffffff; }
-  .wheelText .hwText{ fill:#111111; }
+  .crest.frs{
+    left: 14%;
+  }
+  .crest.hw{
+    right: 14%;
+  }
 
+  /* center hub */
   .hub{
     position:absolute;
     inset: 50% auto auto 50%;
@@ -392,10 +402,15 @@
     padding: 14px;
     pointer-events:none;
   }
-  .hub .hubtxt{display:flex;flex-direction:column;gap:6px;}
+  .hub .hubtxt{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
   .hub .t1{font-weight:900; letter-spacing:.3px;}
   .hub .t2{color:var(--muted); font-size:12px; line-height:1.25;}
 
+  /* Division themes (for buttons inside pages) */
   body.theme-frs{
     --accentBg: #ff2b2b;
     --accentText: #ffffff;
@@ -405,6 +420,7 @@
     --accentText: #111111;
   }
 
+  /* Menu button (top right inside tracker pages) */
   .menuBtn{
     padding:10px 14px;
     border-radius:999px;
@@ -442,20 +458,11 @@
               <div class="slice frs" id="goFRS" role="button" tabindex="0" aria-label="Open UKFRS"></div>
               <div class="slice hw" id="goHW" role="button" tabindex="0" aria-label="Open UKHW"></div>
 
-              <svg class="wheelText" viewBox="0 0 100 100" aria-hidden="true">
-                <defs>
-                  <path id="arcLeft"></path>
-                  <path id="arcRight"></path>
-                </defs>
-
-                <text class="frsText" font-size="7">
-                  <textPath href="#arcLeft" startOffset="50%" text-anchor="middle">UKFRS</textPath>
-                </text>
-
-                <text class="hwText" font-size="7">
-                  <textPath href="#arcRight" startOffset="50%" text-anchor="middle">UKHW</textPath>
-                </text>
-              </svg>
+              <!-- ✅ CRESTS -->
+              <div class="crest-layer" aria-hidden="true">
+                <img class="crest frs" src="./UKFRS_crest.jpg" alt="UKFRS crest">
+                <img class="crest hw"  src="./UKHW_crest.jpg"  alt="UKHW crest">
+              </div>
 
               <div class="hub" aria-hidden="true">
                 <div class="hubtxt">
@@ -465,6 +472,17 @@
               </div>
             </div>
           </div>
+
+          <div class="foot" style="margin-top:14px;">
+            Put these files next to <span style="font-family:var(--mono)">index.html</span>:
+            <span style="font-family:var(--mono)">UKFRS_crest.jpg</span>, <span style="font-family:var(--mono)">UKHW_crest.jpg</span>,
+            <span style="font-family:var(--mono)">UKFRS_website_video.mp4</span>, <span style="font-family:var(--mono)">UKHW_website_video.mp4</span>,
+            and your <span style="font-family:var(--mono)">F999_photo.jpg</span>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- UKFRS PAGE -->
   <div id="pageFRS" class="page">
@@ -616,37 +634,11 @@
 
 <script>
 (() => {
-  // ========= CONFIG =========
   const QUOTA_MINUTES = 6 * 60;
 
   // Put both video files next to index.html
   const FRS_VIDEO = "./UKFRS_website_video.mp4";
   const HW_VIDEO  = "./UKHW_website_video.mp4";
-
-  // ========= CURVED TEXT PATHS =========
-  function polarToCartesian(cx, cy, r, deg){
-    const rad = (deg - 90) * Math.PI / 180;
-    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-  }
-  function describeArc(cx, cy, r, startAngle, endAngle){
-    let s = startAngle, e = endAngle;
-    if (e < s) e += 360;
-
-    const start = polarToCartesian(cx, cy, r, s);
-    const end   = polarToCartesian(cx, cy, r, e);
-
-    const largeArcFlag = (e - s) <= 180 ? "0" : "1";
-    const sweepFlag = "1";
-
-    return `M ${start.x.toFixed(3)} ${start.y.toFixed(3)} A ${r} ${r} 0 ${largeArcFlag} ${sweepFlag} ${end.x.toFixed(3)} ${end.y.toFixed(3)}`;
-  }
-
-  const arcLeft  = document.getElementById("arcLeft");
-  const arcRight = document.getElementById("arcRight");
-
-  // ✅ CHANGE #1: ROTATED +90 DEGREES FROM PREVIOUS VALUES
-  arcLeft.setAttribute("d",  describeArc(50, 50, 44, 235, 305));
-  arcRight.setAttribute("d", describeArc(50, 50, 44, 55, 125));
 
   // ========= PAGE SWITCHING =========
   const pageHome = document.getElementById("pageHome");
@@ -872,8 +864,7 @@
       if (mCS) { block_callsign = String(mCS[1] || "").toUpperCase(); continue; }
 
       const mDur = DURATION_LINE_RE.exec(line);
-      if (mDur) { block_minutes = durationToMinutes(mDur[1]); continue; }
-
+      if (mDur) { block_minutes = durationTo_minutes(mDur[1]); continue; } // <-- fixed below
       const mEnd = ENDED_LINE_RE.exec(line);
       if (mEnd) {
         block_endedDate = parseEndedToDate(mEnd[1]);
@@ -884,6 +875,9 @@
     finalize();
     return records;
   }
+
+  // fix typo safely (if browser caches older JS)
+  function durationTo_minutes(x){ return durationToMinutes(x); }
 
   function filterRecordsByRange(records, start, end){
     const out = [];
