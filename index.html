@@ -3,335 +3,585 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Duty Hours Tracker</title>
+<title>UK Duty Hours Tracker</title>
 
 <style>
-:root{
-  --text:#e9ecf5;
-  --muted:#aeb7d3;
-  --radius:18px;
-  --mono: ui-monospace, Consolas, monospace;
-  --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  :root{
+    --text:#e9ecf5;
+    --muted:#aeb7d3;
+    --radius:18px;
+    --mono: ui-monospace, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 
-  --rowRedBg: rgba(255, 90, 90, 0.16);
-  --rowRedBorder: rgba(255, 90, 90, 0.35);
-  --rowGreenBg: rgba(124, 255, 167, 0.16);
-  --rowGreenBorder: rgba(124, 255, 167, 0.35);
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:var(--sans);
-  color:var(--text);
-  background:#000;
-  overflow-x:hidden;
-}
+    --rowRedBg: rgba(255, 90, 90, 0.16);
+    --rowRedBorder: rgba(255, 90, 90, 0.35);
+    --rowGreenBg: rgba(124, 255, 167, 0.16);
+    --rowGreenBorder: rgba(124, 255, 167, 0.35);
 
-/* ===== VIDEO BACKGROUND (RAW) ===== */
-.bg-video-wrap{
-  position:fixed;
-  inset:0;
-  z-index:-5;
-  overflow:hidden;
-  background:#000;
-}
-#bg-video{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  object-position: center 20%;
-  filter:none;
-}
+    /* per-division accents (overridden by body class) */
+    --accentBg: #ff3b3b;
+    --accentText: #ffffff;
 
-/* ===== CONTENT ===== */
-.wrap{
-  max-width:980px;
-  margin:0 auto;
-  padding:42px 18px 64px;
-  position:relative;
-  z-index:1;
-}
-.top{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:16px;
-  margin-bottom:18px;
-}
-.brand h1{margin:0;font-size:28px;}
-.brand p{margin:4px 0 0;color:var(--muted);font-size:14px;}
+    /* background assets (edit these filenames if you rename files) */
+    --homeBgImage: url("F999_photo"); /* e.g. F999_photo.jpg OR F999_photo.png (see note below) */
+  }
 
-.pill{
-  padding:10px 14px;
-  border-radius:999px;
-  background:rgba(0,0,0,.35);
-  border:1px solid rgba(255,255,255,.15);
-  font-size:13px;
-  backdrop-filter:blur(8px);
-}
+  /* IMPORTANT:
+     If your file is "F999_photo.jpg", set:  --homeBgImage: url("F999_photo.jpg");
+     If it's "F999_photo.png", set:  --homeBgImage: url("F999_photo.png");
+  */
 
-.grid{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:14px;
-}
-@media(min-width:920px){
-  .grid{grid-template-columns:1.2fr .8fr;}
-}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:var(--sans);
+    color:var(--text);
+    background:#000;
+    overflow-x:hidden;
+  }
 
-.card{
-  background:rgba(10,12,18,0.55);
-  border:1px solid rgba(255,255,255,.15);
-  border-radius:var(--radius);
-  padding:18px;
-  backdrop-filter:blur(14px);
-}
+  /* ===== LIVE BACKGROUND VIDEO (shared base) ===== */
+  .bg-video-wrap{
+    position:fixed;
+    inset:0;
+    z-index:-5;
+    overflow:hidden;
+    background:#000;
+  }
+  .bg-video{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position: center 20%;
+    filter:none;
+  }
 
-label{
-  display:block;
-  color:var(--muted);
-  font-size:13px;
-  margin:10px 0 6px;
-}
+  /* ===== HOME BACKGROUND (image) ===== */
+  .home-bg{
+    position:fixed;
+    inset:0;
+    z-index:-5;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.55)),
+      var(--homeBgImage);
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
 
-textarea,input[type="date"]{
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.15);
-  background:rgba(0,0,0,.35);
-  color:var(--text);
-  font-family:var(--sans);
-}
+  /* ===== LAYOUT ===== */
+  .wrap{
+    max-width:1100px;
+    margin:0 auto;
+    padding:42px 18px 64px;
+    position:relative;
+    z-index:1;
+  }
 
-textarea{
-  min-height:260px;
-  resize:vertical;
-  font-family:var(--mono);
-  font-size:12px;
-}
+  .top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    margin-bottom:18px;
+  }
+  .brand h1{margin:0;font-size:28px;}
+  .brand p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.35;}
 
-.row{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.row>*{flex:1}
+  .pill{
+    padding:10px 14px;
+    border-radius:999px;
+    background:rgba(0,0,0,.35);
+    border:1px solid rgba(255,255,255,.15);
+    font-size:13px;
+    backdrop-filter:blur(8px);
+    white-space:nowrap;
+  }
 
-.btnrow{
-  display:flex;
-  gap:10px;
-  margin-top:12px;
-  flex-wrap:wrap;
-}
+  .grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  @media(min-width:920px){
+    .grid{grid-template-columns:1.2fr .8fr;}
+  }
 
-button{
-  padding:12px 16px;
-  border-radius:14px;
-  border:none;
-  cursor:pointer;
-  font-weight:600;
-  background:linear-gradient(135deg,#7aa2ff,#7cffc7);
-  color:#091023;
-}
-button.secondary{
-  background:rgba(0,0,0,.35);
-  color:var(--text);
-  border:1px solid rgba(255,255,255,.2);
-  backdrop-filter:blur(8px);
-}
+  .card{
+    background:rgba(10,12,18,0.55);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:var(--radius);
+    padding:18px;
+    backdrop-filter:blur(14px);
+  }
 
-.error,.ok{
-  margin-top:10px;
-  padding:10px 12px;
-  border-radius:12px;
-  font-size:13px;
-  display:none;
-}
-.error{
-  background:rgba(255,100,100,.15);
-  border:1px solid rgba(255,100,100,.4);
-}
-.ok{
-  background:rgba(124,255,167,.15);
-  border:1px solid rgba(124,255,167,.4);
-}
+  label{
+    display:block;
+    color:var(--muted);
+    font-size:13px;
+    margin:10px 0 6px;
+  }
 
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:12px;
-  border-radius:14px;
-  overflow:hidden;
-  background:rgba(0,0,0,.25);
-}
-th,td{
-  padding:10px;
-  border-bottom:1px solid rgba(255,255,255,.1);
-  font-size:13px;
-}
-th{color:var(--muted);}
-tr:last-child td{border-bottom:none;}
+  textarea,input[type="date"]{
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.15);
+    background:rgba(0,0,0,.35);
+    color:var(--text);
+    font-family:var(--sans);
+    outline:none;
+  }
+  textarea:focus,input[type="date"]:focus{
+    border-color: rgba(255,255,255,.28);
+  }
 
-.kpi{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:10px;
-}
-.kpi .box{
-  padding:12px;
-  border-radius:14px;
-  background:rgba(0,0,0,.25);
-  border:1px solid rgba(255,255,255,.12);
-}
-.kpi .t{color:var(--muted);font-size:12px;}
-.kpi .v{font-size:20px;font-weight:700;margin-top:4px;}
-.foot{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.35;}
+  textarea{
+    min-height:260px;
+    resize:vertical;
+    font-family:var(--mono);
+    font-size:12px;
+    line-height:1.45;
+  }
 
-/* Quota rows */
-tr.quota-missing td{
-  background: var(--rowRedBg);
-  border-bottom-color: var(--rowRedBorder);
-}
-tr.quota-complete td{
-  background: var(--rowGreenBg);
-  border-bottom-color: var(--rowGreenBorder);
-}
+  .row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .row>*{flex:1}
 
-.badge{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(0,0,0,.20);
-  font-size:12px;
-  color:var(--text);
-  white-space:nowrap;
-}
-.badge.red{
-  border-color: var(--rowRedBorder);
-  background: rgba(255,90,90,0.12);
-}
-.badge.green{
-  border-color: var(--rowGreenBorder);
-  background: rgba(124,255,167,0.12);
-}
+  .btnrow{
+    display:flex;
+    gap:10px;
+    margin-top:12px;
+    flex-wrap:wrap;
+  }
 
-/* ===== EXPORT MODAL ===== */
-.modal-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.65);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-.modal{
-  width:min(900px, 94vw);
-  max-height: 86vh;
-  overflow:auto;
-  border-radius: 18px;
-  border:1px solid rgba(255,255,255,.15);
-  background: rgba(10,12,18,0.92);
-  backdrop-filter: blur(14px);
-  padding: 16px;
-}
-.modal h3{
-  margin:0 0 10px 0;
-  font-size:16px;
-}
-.modal .actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:10px;
-}
-.modal textarea{
-  min-height: 320px;
-  background: rgba(0,0,0,0.35);
-}
-.smallmuted{
-  color:var(--muted);
-  font-size:12px;
-  margin-top:6px;
-}
+  button{
+    padding:12px 16px;
+    border-radius:14px;
+    border:none;
+    cursor:pointer;
+    font-weight:650;
+    letter-spacing:.2px;
+    background: var(--accentBg);
+    color: var(--accentText);
+  }
+  button.secondary{
+    background:rgba(0,0,0,.35);
+    color:var(--text);
+    border:1px solid rgba(255,255,255,.2);
+    backdrop-filter:blur(8px);
+  }
+  button:active{transform: translateY(1px);}
+
+  .error,.ok{
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:12px;
+    font-size:13px;
+    display:none;
+  }
+  .error{
+    background:rgba(255,100,100,.15);
+    border:1px solid rgba(255,100,100,.4);
+  }
+  .ok{
+    background:rgba(124,255,167,.15);
+    border:1px solid rgba(124,255,167,.4);
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:12px;
+    border-radius:14px;
+    overflow:hidden;
+    background:rgba(0,0,0,.25);
+  }
+  th,td{
+    padding:10px;
+    border-bottom:1px solid rgba(255,255,255,.1);
+    font-size:13px;
+  }
+  th{color:var(--muted);}
+  tr:last-child td{border-bottom:none;}
+
+  .kpi{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:10px;
+  }
+  .kpi .box{
+    padding:12px;
+    border-radius:14px;
+    background:rgba(0,0,0,.25);
+    border:1px solid rgba(255,255,255,.12);
+  }
+  .kpi .t{color:var(--muted);font-size:12px;}
+  .kpi .v{font-size:20px;font-weight:800;margin-top:4px;}
+  .foot{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.35;}
+
+  /* Quota rows */
+  tr.quota-missing td{
+    background: var(--rowRedBg);
+    border-bottom-color: var(--rowRedBorder);
+  }
+  tr.quota-complete td{
+    background: var(--rowGreenBg);
+    border-bottom-color: var(--rowGreenBorder);
+  }
+
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(0,0,0,.20);
+    font-size:12px;
+    color:var(--text);
+    white-space:nowrap;
+  }
+  .badge.red{
+    border-color: var(--rowRedBorder);
+    background: rgba(255,90,90,0.12);
+  }
+  .badge.green{
+    border-color: var(--rowGreenBorder);
+    background: rgba(124,255,167,0.12);
+  }
+
+  /* ===== EXPORT MODAL ===== */
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.65);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+  }
+  .modal{
+    width:min(900px, 94vw);
+    max-height: 86vh;
+    overflow:auto;
+    border-radius: 18px;
+    border:1px solid rgba(255,255,255,.15);
+    background: rgba(10,12,18,0.92);
+    backdrop-filter: blur(14px);
+    padding: 16px;
+  }
+  .modal h3{margin:0 0 10px 0;font-size:16px;}
+  .modal .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .modal textarea{min-height: 320px;background: rgba(0,0,0,0.35);}
+  .smallmuted{color:var(--muted);font-size:12px;margin-top:6px;}
+
+  /* ===== PAGES ===== */
+  .page{display:none;}
+  .page.active{display:block;}
+
+  /* ===== HOME PAGE (circular buttons) ===== */
+  .home-center{
+    min-height: calc(100vh - 120px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .home-panel{
+    width: min(980px, 100%);
+    padding: 22px;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(10,12,18,0.45);
+    backdrop-filter: blur(14px);
+  }
+  .home-title{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom: 18px;
+  }
+  .home-title h1{margin:0;font-size:30px;}
+  .home-title p{margin:6px 0 0;color:var(--muted);font-size:14px;}
+
+  .circle-grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-items:center;
+  }
+  @media(min-width:720px){
+    .circle-grid{grid-template-columns: 1fr 1fr;}
+  }
+
+  .circle-btn{
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.16);
+    box-shadow: 0 30px 70px rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    cursor:pointer;
+    user-select:none;
+    position:relative;
+    overflow:hidden;
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .circle-btn:active{transform: scale(.99);}
+
+  .circle-btn .inner{
+    padding: 22px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:center;
+    justify-content:center;
+  }
+  .circle-btn .big{
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: .5px;
+  }
+  .circle-btn .small{
+    font-size: 13px;
+    opacity:.9;
+    max-width: 22ch;
+    line-height: 1.35;
+  }
+
+  /* UKFRS circle */
+  .circle-frs{
+    background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.14), rgba(0,0,0,.12)),
+                linear-gradient(135deg, #ff2b2b, #b30000);
+    color: #fff;
+  }
+
+  /* UKHW circle */
+  .circle-hw{
+    background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.12), rgba(0,0,0,.10)),
+                linear-gradient(135deg, #ffd000, #ffb300);
+    color: #111;
+  }
+
+  /* Division themes */
+  body.theme-frs{
+    --accentBg: #ff2b2b;
+    --accentText: #ffffff;
+  }
+  body.theme-hw{
+    --accentBg: #ffd000;
+    --accentText: #111111;
+  }
+
+  /* subtle back button */
+  .backbar{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom: 10px;
+  }
 </style>
 </head>
 
-<body>
-  <div class="bg-video-wrap" aria-hidden="true">
-    <video id="bg-video" autoplay muted loop playsinline preload="auto">
-      <source src="./UKFRS_website_video.mp4" type="video/mp4">
+<body class="theme-frs">
+
+  <!-- HOME background image -->
+  <div id="homeBg" class="home-bg" aria-hidden="true"></div>
+
+  <!-- LIVE background video (used for UKFRS + UKHW pages) -->
+  <div id="videoBgWrap" class="bg-video-wrap" aria-hidden="true" style="display:none;">
+    <video id="bgVideo" class="bg-video" autoplay muted loop playsinline preload="auto">
+      <source id="bgVideoSource" src="./UKFRS_website_video.mp4" type="video/mp4">
     </video>
   </div>
 
-  <div class="wrap">
-    <div class="top">
-      <div class="brand">
-        <h1>Duty Hours Tracker</h1>
-        <p>Paste Duty Logger exports and calculate totals (filtered by Ended date).</p>
+  <!-- HOME PAGE -->
+  <div id="pageHome" class="page active">
+    <div class="wrap">
+      <div class="home-center">
+        <div class="home-panel">
+          <div class="home-title">
+            <div>
+              <h1>Duty Hours Tracker</h1>
+              <p>Select your division to continue.</p>
+            </div>
+            <div class="pill">F999 System</div>
+          </div>
+
+          <div class="circle-grid">
+            <div class="circle-btn circle-frs" id="goFRS" role="button" tabindex="0" aria-label="Open UKFRS">
+              <div class="inner">
+                <div class="big">UKFRS</div>
+                <div class="small">Fire & Rescue<br>F1–F12</div>
+              </div>
+            </div>
+
+            <div class="circle-btn circle-hw" id="goHW" role="button" tabindex="0" aria-label="Open UKHW">
+              <div class="inner">
+                <div class="big">UKHW</div>
+                <div class="small">Highways<br>U1–U6, ST7–ST10</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="foot" style="margin-top:14px;">
+            Tip: Put your background image file in the repo and set <span style="font-family:var(--mono)">--homeBgImage</span> at the top of the CSS to match the filename.
+          </div>
+        </div>
       </div>
-      <div class="pill">All callsigns</div>
     </div>
+  </div>
 
-    <div class="grid">
-      <div class="card">
-        <label>Duty Logger export</label>
-        <textarea id="logs" placeholder="Paste logs here..."></textarea>
-
-        <div class="row">
-          <div>
-            <label>Start date (inclusive)</label>
-            <input type="date" id="startDate">
-          </div>
-          <div>
-            <label>End date (inclusive)</label>
-            <input type="date" id="endDate">
-          </div>
-        </div>
-
-        <div class="btnrow">
-          <button id="getHoursBtn">Get hours</button>
-          <button id="exportBtn" class="secondary">Export data</button>
-          <button id="clearBtn" class="secondary">Clear</button>
-        </div>
-
-        <div id="appErr" class="error"></div>
-        <div id="appOk" class="ok"></div>
-        <div class="foot" id="meta"></div>
+  <!-- UKFRS PAGE -->
+  <div id="pageFRS" class="page">
+    <div class="wrap">
+      <div class="backbar">
+        <button class="secondary" id="backFromFRS">Back</button>
       </div>
 
-      <div class="card">
-        <div class="kpi">
-          <div class="box">
-            <div class="t">Quota</div>
-            <div class="v">06:00</div>
+      <div class="top">
+        <div class="brand">
+          <h1>UKFRS Duty Hours</h1>
+          <p>Callsigns: F1–F12. Filtered by <b>Ended</b> date.</p>
+        </div>
+        <div class="pill">Theme: Red</div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <label>Duty Logger export</label>
+          <textarea id="logsFRS" placeholder="Paste UKFRS logs here..."></textarea>
+
+          <div class="row">
+            <div>
+              <label>Start date (inclusive)</label>
+              <input type="date" id="startDateFRS">
+            </div>
+            <div>
+              <label>End date (inclusive)</label>
+              <input type="date" id="endDateFRS">
+            </div>
           </div>
-          <div class="box">
-            <div class="t">Total time (all)</div>
-            <div class="v" id="kpiTotal">00:00</div>
+
+          <div class="btnrow">
+            <button id="getHoursFRS">Get hours</button>
+            <button id="exportFRS" class="secondary">Export data</button>
+            <button id="clearFRS" class="secondary">Clear</button>
           </div>
+
+          <div id="errFRS" class="error"></div>
+          <div id="okFRS" class="ok"></div>
+          <div class="foot" id="metaFRS"></div>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Callsign</th>
-              <th>Total</th>
-              <th>Quota status</th>
-            </tr>
-          </thead>
-          <tbody id="resultsBody">
-            <tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>
-          </tbody>
-        </table>
+        <div class="card">
+          <div class="kpi">
+            <div class="box">
+              <div class="t">Quota</div>
+              <div class="v">06:00</div>
+            </div>
+            <div class="box">
+              <div class="t">Total time (all)</div>
+              <div class="v" id="totalFRS">00:00</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Callsign</th>
+                <th>Total</th>
+                <th>Quota status</th>
+              </tr>
+            </thead>
+            <tbody id="rowsFRS">
+              <tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UKHW PAGE -->
+  <div id="pageHW" class="page">
+    <div class="wrap">
+      <div class="backbar">
+        <button class="secondary" id="backFromHW">Back</button>
+      </div>
+
+      <div class="top">
+        <div class="brand">
+          <h1>UKHW Duty Hours</h1>
+          <p>Callsigns: U1–U6 and ST7–ST10. Filtered by <b>Ended</b> date.</p>
+        </div>
+        <div class="pill">Theme: Yellow</div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <label>Duty Logger export</label>
+          <textarea id="logsHW" placeholder="Paste UKHW logs here..."></textarea>
+
+          <div class="row">
+            <div>
+              <label>Start date (inclusive)</label>
+              <input type="date" id="startDateHW">
+            </div>
+            <div>
+              <label>End date (inclusive)</label>
+              <input type="date" id="endDateHW">
+            </div>
+          </div>
+
+          <div class="btnrow">
+            <button id="getHoursHW">Get hours</button>
+            <button id="exportHW" class="secondary">Export data</button>
+            <button id="clearHW" class="secondary">Clear</button>
+          </div>
+
+          <div id="errHW" class="error"></div>
+          <div id="okHW" class="ok"></div>
+          <div class="foot" id="metaHW"></div>
+        </div>
+
+        <div class="card">
+          <div class="kpi">
+            <div class="box">
+              <div class="t">Quota</div>
+              <div class="v">06:00</div>
+            </div>
+            <div class="box">
+              <div class="t">Total time (all)</div>
+              <div class="v" id="totalHW">00:00</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Callsign</th>
+                <th>Total</th>
+                <th>Quota status</th>
+              </tr>
+            </thead>
+            <tbody id="rowsHW">
+              <tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -341,7 +591,7 @@ tr.quota-complete td{
     <div class="modal">
       <h3>Exported shifts (copy/paste)</h3>
       <textarea id="exportText" readonly></textarea>
-      <div class="smallmuted">Format: Callsign [TAB] Date (MM/DD/YYYY) [TAB] Time (HH:MM)</div>
+      <div class="smallmuted">Format: Callsign [TAB] Date (M/D/YYYY) [TAB] Time (HH:MM)</div>
       <div class="actions">
         <button id="copyExportBtn">Copy</button>
         <button id="closeExportBtn" class="secondary">Close</button>
@@ -352,42 +602,114 @@ tr.quota-complete td{
 
 <script>
 (() => {
-  // Autoplay reliability nudge
-  const v = document.getElementById("bg-video");
-  if (v) {
-    v.muted = true;
-    const tryPlay = () => v.play().catch(()=>{});
-    document.addEventListener("click", tryPlay, { once:true });
-    document.addEventListener("touchstart", tryPlay, { once:true });
-    tryPlay();
+  // ========= CONFIG =========
+  const QUOTA_MINUTES = 6 * 60;
+
+  // Background video sources:
+  // - UKFRS uses UKFRS_website_video.mp4 (your existing file)
+  // - UKHW also uses the same live background by default.
+  //   If you want a different one, upload it and change UKHW_VIDEO below.
+  const FRS_VIDEO = "./UKFRS_website_video.mp4";
+  const HW_VIDEO  = "./UKFRS_website_video.mp4";
+
+  // ========= PAGE SWITCHING =========
+  const pageHome = document.getElementById("pageHome");
+  const pageFRS  = document.getElementById("pageFRS");
+  const pageHW   = document.getElementById("pageHW");
+  const homeBg   = document.getElementById("homeBg");
+  const videoBgWrap = document.getElementById("videoBgWrap");
+  const bgVideo = document.getElementById("bgVideo");
+  const bgVideoSource = document.getElementById("bgVideoSource");
+
+  function setActivePage(which){
+    // hide all
+    pageHome.classList.remove("active");
+    pageFRS.classList.remove("active");
+    pageHW.classList.remove("active");
+
+    if (which === "home"){
+      pageHome.classList.add("active");
+      document.body.classList.remove("theme-frs","theme-hw");
+      document.body.classList.add("theme-frs"); // default
+      homeBg.style.display = "block";
+      videoBgWrap.style.display = "none";
+      return;
+    }
+
+    // show video background
+    homeBg.style.display = "none";
+    videoBgWrap.style.display = "block";
+
+    if (which === "frs"){
+      pageFRS.classList.add("active");
+      document.body.classList.remove("theme-hw");
+      document.body.classList.add("theme-frs");
+      setVideoSource(FRS_VIDEO);
+      return;
+    }
+
+    if (which === "hw"){
+      pageHW.classList.add("active");
+      document.body.classList.remove("theme-frs");
+      document.body.classList.add("theme-hw");
+      setVideoSource(HW_VIDEO);
+      return;
+    }
   }
 
-  // ---------- constants ----------
-  const QUOTA_MINUTES = 6 * 60; // 6 hours
+  function setVideoSource(src){
+    if (!src) return;
+    if (bgVideoSource.getAttribute("src") === src) {
+      // already set; still nudge play
+      tryPlayVideo();
+      return;
+    }
+    bgVideo.pause();
+    bgVideoSource.setAttribute("src", src);
+    bgVideo.load();
+    tryPlayVideo();
+  }
 
-  // ---------- patterns ----------
-  const CALLSIGN_RE = /^(F(?:[1-9]|1[0-2]))$/i;
-  const DUTY_ENDED_RE = /\b(F(?:[1-9]|1[0-2]))\s*[—–-]\s*Duty\s+Ended\b/i;
-  const CALLSIGN_LINE_RE = /^\s*Callsign:\s*(F(?:[1-9]|1[0-2]))\s*$/i;
+  function tryPlayVideo(){
+    if (!bgVideo) return;
+    bgVideo.muted = true;
+    const p = bgVideo.play();
+    if (p && typeof p.catch === "function") p.catch(()=>{});
+  }
+  // autoplay nudge
+  document.addEventListener("click", tryPlayVideo, { once:true });
+  document.addEventListener("touchstart", tryPlayVideo, { once:true });
+
+  // Home buttons
+  document.getElementById("goFRS").addEventListener("click", () => setActivePage("frs"));
+  document.getElementById("goHW").addEventListener("click",  () => setActivePage("hw"));
+  document.getElementById("backFromFRS").addEventListener("click", () => setActivePage("home"));
+  document.getElementById("backFromHW").addEventListener("click",  () => setActivePage("home"));
+
+  // Keyboard activation for circles
+  function keyActivate(el, fn){
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); }
+    });
+  }
+  keyActivate(document.getElementById("goFRS"), () => setActivePage("frs"));
+  keyActivate(document.getElementById("goHW"),  () => setActivePage("hw"));
+
+  // ========= PARSING CORE =========
+  const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF]/g;
+  function cleanLine(s){ return String(s ?? "").replace(/\r?\n$/, "").replace(ZERO_WIDTH_RE, ""); }
+
+  // NOTE: Duty Ended line can start with F, U, or ST.
+  const DUTY_ENDED_RE = /\b((?:F(?:[1-9]|1[0-2]))|(?:U[1-6])|(?:ST(?:[7-9]|10)))\s*[—–-]\s*Duty\s+Ended\b/i;
+
+  const CALLSIGN_LINE_RE = /^\s*Callsign:\s*([A-Z]{1,2}\d{1,2})\s*$/i;
   const DURATION_LINE_RE = /^\s*Duration:\s*(.+?)\s*$/i;
-  const ENDED_LINE_RE = /^\s*Ended:\s*(.+?)\s*$/i;
+  const ENDED_LINE_RE    = /^\s*Ended:\s*(.+?)\s*$/i;
 
   const MONTHS = {
     january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11
   };
 
-  // ---------- utilities ----------
-  function durationToMinutes(t){
-    const mh = /(\d+)\s*h/i.exec(t || "");
-    const mm = /(\d+)\s*m/i.exec(t || "");
-    const h = mh ? Number(mh[1]) : 0;
-    const m = mm ? Number(mm[1]) : 0;
-    return h*60 + m;
-  }
-  function minutesToHHMM(t){
-    const h=Math.floor(t/60), m=t%60;
-    return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
-  }
   function isValidYMD(y,m,d){
     const dt = new Date(y,m,d);
     return Number.isInteger(y) && Number.isInteger(m) && Number.isInteger(d) &&
@@ -401,12 +723,30 @@ tr.quota-complete td{
     return `${mm}/${dd}/${yyyy}`;
   }
 
-  // Parse Ended line -> Date (local midnight)
+  function durationToMinutes(t){
+    const mh = /(\d+)\s*h/i.exec(t || "");
+    const mm = /(\d+)\s*m/i.exec(t || "");
+    const h = mh ? Number(mh[1]) : 0;
+    const m = mm ? Number(mm[1]) : 0;
+    return h*60 + m;
+  }
+  function minutesToHHMM(t){
+    const h=Math.floor(t/60), m=t%60;
+    return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+  }
+
+  // Parse Ended -> local midnight Date. Supports your mixed formats + noisy prefixes.
   function parseEndedToDate(endedText){
-    let t = String(endedText || "").trim();
+    let t = cleanLine(endedText).trim();
+
+    // remove "[18:27]" prefix
     t = t.replace(/^\[\d{1,2}:\d{2}\]\s*/, "");
 
-    // A) Day-first, optional weekday:
+    // fix "— 18:47Monday, 23 February..." style: insert a space after time if missing
+    t = t.replace(/^(\d{1,2}:\d{2})([A-Za-z])/, "$1 $2");
+
+    // A) Day-first with optional weekday:
+    // "Sunday, 22 February 2026 21:46" or "Sunday 22 February 2026 21:46"
     const mA = /^(?:[A-Za-z]+(?:day)?[,\s]+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mA) {
       const day = Number(mA[1]);
@@ -416,7 +756,8 @@ tr.quota-complete td{
       return new Date(year, mon, day);
     }
 
-    // B) Month-name, optional weekday+comma:
+    // B) Month-name with optional weekday and commas:
+    // "Thursday, January 29, 2026 10:04 PM"
     const mB = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mB) {
       const mon = MONTHS[mB[1].toLowerCase()];
@@ -453,9 +794,31 @@ tr.quota-complete td{
     return null;
   }
 
-  // Extract blocks -> {callsign, ended, minutes}
-  function extractRecords(logText){
-    const lines = String(logText || "").split("\n");
+  function inputDate(el){
+    const v = (el.value || "").trim(); // "YYYY-MM-DD"
+    if (!v) return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    if (!m) return null;
+    const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
+    if (!isValidYMD(y, mo, d)) return null;
+    return new Date(y, mo, d);
+  }
+
+  function quotaCellHTML(totalMinutes){
+    if (totalMinutes >= QUOTA_MINUTES) return `<span class="badge green">Quota complete</span>`;
+    const remaining = QUOTA_MINUTES - totalMinutes;
+    return `<span class="badge red">Remaining: ${minutesToHHMM(remaining)}</span>`;
+  }
+
+  // Allowed callsigns
+  const FRS_ALLOWED = new Set(Array.from({length:12}, (_,i)=>`F${i+1}`));
+  const HW_ALLOWED  = new Set([
+    "U1","U2","U3","U4","U5","U6",
+    "ST7","ST8","ST9","ST10"
+  ]);
+
+  function extractRecords(logText, allowedSet){
+    const lines = String(logText || "").split("\n").map(cleanLine);
     const records = [];
 
     let inBlock=false;
@@ -465,19 +828,21 @@ tr.quota-complete td{
 
     function finalize(){
       if (!inBlock) return;
+
       if (
         block_callsign &&
-        CALLSIGN_RE.test(block_callsign) &&
+        allowedSet.has(block_callsign) &&
         block_minutes != null &&
         block_minutes > 0 &&
         block_endedDate instanceof Date
       ) {
         records.push({
-          callsign: block_callsign.toUpperCase(),
+          callsign: block_callsign,
           ended: block_endedDate,
           minutes: block_minutes
         });
       }
+
       inBlock=false;
       block_callsign=null;
       block_minutes=null;
@@ -489,16 +854,23 @@ tr.quota-complete td{
       if (mStart) {
         finalize();
         inBlock = true;
-        block_callsign = (mStart[1] || "").toUpperCase();
+        block_callsign = String(mStart[1] || "").toUpperCase();
         continue;
       }
+
       if (!inBlock) continue;
 
       const mCS = CALLSIGN_LINE_RE.exec(line);
-      if (mCS) { block_callsign = (mCS[1] || "").toUpperCase(); continue; }
+      if (mCS) {
+        block_callsign = String(mCS[1] || "").toUpperCase();
+        continue;
+      }
 
       const mDur = DURATION_LINE_RE.exec(line);
-      if (mDur) { block_minutes = durationToMinutes(mDur[1]); continue; }
+      if (mDur) {
+        block_minutes = durationToMinutes(mDur[1]);
+        continue;
+      }
 
       const mEnd = ENDED_LINE_RE.exec(line);
       if (mEnd) {
@@ -507,58 +879,47 @@ tr.quota-complete td{
         continue;
       }
     }
+
     finalize();
     return records;
   }
 
-  // Convert <input type="date"> to local midnight Date
-  function inputDate(el){
-    const v = (el.value || "").trim(); // "YYYY-MM-DD"
-    if (!v) return null;
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
-    if (!m) return null;
-    const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
-    if (!isValidYMD(y, mo, d)) return null;
-    return new Date(y, mo, d);
-  }
-
-  // ---------- UI ----------
-  const logsEl = document.getElementById("logs");
-  const startEl = document.getElementById("startDate");
-  const endEl = document.getElementById("endDate");
-  const resultsBody = document.getElementById("resultsBody");
-  const kpiTotal = document.getElementById("kpiTotal");
-  const appErr = document.getElementById("appErr");
-  const appOk = document.getElementById("appOk");
-  const metaEl = document.getElementById("meta");
-
-  // Export modal elements
-  const exportBackdrop = document.getElementById("exportBackdrop");
-  const exportText = document.getElementById("exportText");
-  const copyExportBtn = document.getElementById("copyExportBtn");
-  const closeExportBtn = document.getElementById("closeExportBtn");
-  const copyMsg = document.getElementById("copyMsg");
-
-  function show(el, msg){
-    el.style.display = msg ? "block" : "none";
-    el.textContent = msg || "";
-  }
-
-  function quotaCellHTML(totalMinutes){
-    if (totalMinutes >= QUOTA_MINUTES) {
-      return `<span class="badge green">Quota complete</span>`;
+  function filterRecordsByRange(records, start, end){
+    const out = [];
+    for (const r of records){
+      if (start && r.ended.getTime() < start.getTime()) continue;
+      if (end && r.ended.getTime() > end.getTime()) continue;
+      out.push(r);
     }
-    const remaining = QUOTA_MINUTES - totalMinutes;
-    return `<span class="badge red">Remaining: ${minutesToHHMM(remaining)}</span>`;
+    return out;
   }
 
-  function renderTotals(totals){
-    resultsBody.innerHTML = "";
+  function buildExportText(recordsInRange){
+    const sorted = [...recordsInRange].sort((a,b) => {
+      const da = a.ended.getTime(), db = b.ended.getTime();
+      if (da !== db) return da - db;
+      if (a.callsign !== b.callsign) return a.callsign.localeCompare(b.callsign);
+      return a.minutes - b.minutes;
+    });
 
+    return sorted.map(r => `${r.callsign}\t${formatMDY(r.ended)}\t${minutesToHHMM(r.minutes)}`).join("\n");
+  }
+
+  function computeTotals(recordsInRange){
+    const totals = {};
+    for (const r of recordsInRange){
+      totals[r.callsign] = (totals[r.callsign] || 0) + r.minutes;
+    }
+    return totals;
+  }
+
+  function renderTotals(totals, tbodyEl, totalEl){
+    tbodyEl.innerHTML = "";
     const keys = Object.keys(totals).sort();
+
     if (keys.length === 0){
-      resultsBody.innerHTML = '<tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>';
-      kpiTotal.textContent = "00:00";
+      tbodyEl.innerHTML = '<tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>';
+      totalEl.textContent = "00:00";
       return 0;
     }
 
@@ -574,144 +935,148 @@ tr.quota-complete td{
         <td>${minutesToHHMM(mins)}</td>
         <td>${quotaCellHTML(mins)}</td>
       `;
-      resultsBody.appendChild(tr);
+      tbodyEl.appendChild(tr);
     }
 
-    kpiTotal.textContent = minutesToHHMM(grand);
+    totalEl.textContent = minutesToHHMM(grand);
     return grand;
   }
 
-  function filterRecordsByRange(records, start, end){
-    const out = [];
-    for (const r of records){
-      if (start && r.ended.getTime() < start.getTime()) continue;
-      if (end && r.ended.getTime() > end.getTime()) continue;
-      out.push(r);
-    }
-    return out;
-  }
-
-  // Build export text: Callsign<TAB>Date(M/D/YYYY)<TAB>HH:MM
-  function buildExportText(recordsInRange){
-    // sort by ended date then callsign
-    const sorted = [...recordsInRange].sort((a,b) => {
-      const da = a.ended.getTime(), db = b.ended.getTime();
-      if (da !== db) return da - db;
-      return a.callsign.localeCompare(b.callsign);
-    });
-
-    const lines = sorted.map(r => {
-      const dateStr = formatMDY(r.ended);
-      const hhmm = minutesToHHMM(r.minutes);
-      return `${r.callsign}\t${dateStr}\t${hhmm}`;
-    });
-
-    return lines.join("\n");
-  }
+  // ========= EXPORT MODAL =========
+  const exportBackdrop = document.getElementById("exportBackdrop");
+  const exportText = document.getElementById("exportText");
+  const copyExportBtn = document.getElementById("copyExportBtn");
+  const closeExportBtn = document.getElementById("closeExportBtn");
+  const copyMsg = document.getElementById("copyMsg");
 
   function openExportModal(text){
     exportText.value = text || "";
     copyMsg.textContent = "";
     exportBackdrop.style.display = "flex";
-    // select for easy copy
     exportText.focus();
     exportText.select();
   }
-  function closeExportModal(){
-    exportBackdrop.style.display = "none";
-  }
+  function closeExportModal(){ exportBackdrop.style.display = "none"; }
 
-  // Close modal on backdrop click (but not when clicking inside)
-  exportBackdrop.addEventListener("click", (e) => {
-    if (e.target === exportBackdrop) closeExportModal();
-  });
+  exportBackdrop.addEventListener("click", (e) => { if (e.target === exportBackdrop) closeExportModal(); });
   closeExportBtn.addEventListener("click", closeExportModal);
-
   copyExportBtn.addEventListener("click", async () => {
     try{
       await navigator.clipboard.writeText(exportText.value);
       copyMsg.textContent = "Copied to clipboard.";
     }catch{
-      // fallback: selection is already done
       copyMsg.textContent = "Select all (Ctrl+A) then copy (Ctrl+C).";
     }
   });
 
-  // Main calculate button
-  document.getElementById("getHoursBtn").addEventListener("click", () => {
-    show(appErr, "");
-    show(appOk, "");
-    metaEl.textContent = "";
+  // ========= WIRING: UKFRS =========
+  function wireDivision(opts){
+    const {
+      logsEl, startEl, endEl,
+      btnGet, btnExport, btnClear,
+      errEl, okEl, metaEl,
+      rowsEl, totalEl,
+      allowedSet
+    } = opts;
 
-    const text = logsEl.value || "";
-    if (!text.trim()){
-      show(appErr, "Paste logs first.");
-      return;
+    function show(el, msg){
+      el.style.display = msg ? "block" : "none";
+      el.textContent = msg || "";
     }
 
-    const start = inputDate(startEl);
-    const end = inputDate(endEl);
-    if (start && end && start.getTime() > end.getTime()){
-      show(appErr, "Start date must be on or before End date.");
-      return;
-    }
+    btnGet.addEventListener("click", () => {
+      show(errEl, ""); show(okEl, ""); metaEl.textContent = "";
 
-    const records = extractRecords(text);
-    const recordsInRange = filterRecordsByRange(records, start, end);
+      const text = logsEl.value || "";
+      if (!text.trim()){
+        show(errEl, "Paste logs first.");
+        return;
+      }
 
-    const totals = {};
-    for (const r of recordsInRange){
-      totals[r.callsign] = (totals[r.callsign] || 0) + r.minutes;
-    }
+      const start = inputDate(startEl);
+      const end = inputDate(endEl);
+      if (start && end && start.getTime() > end.getTime()){
+        show(errEl, "Start date must be on or before End date.");
+        return;
+      }
 
-    const grand = renderTotals(totals);
-    metaEl.textContent = `Parsed ${records.length} Duty Ended blocks. Kept ${recordsInRange.length} in range.`;
+      const records = extractRecords(text, allowedSet);
+      const inRange = filterRecordsByRange(records, start, end);
+      const totals = computeTotals(inRange);
 
-    show(appOk, grand > 0 ? "Done." : "No matching shifts in that range.");
+      const grand = renderTotals(totals, rowsEl, totalEl);
+      metaEl.textContent = `Parsed ${records.length} Duty Ended blocks. Kept ${inRange.length} in range.`;
+      show(okEl, grand > 0 ? "Done." : "No matching shifts in that range.");
+    });
+
+    btnExport.addEventListener("click", () => {
+      show(errEl, ""); show(okEl, "");
+
+      const text = logsEl.value || "";
+      if (!text.trim()){
+        show(errEl, "Paste logs first (then export).");
+        return;
+      }
+
+      const start = inputDate(startEl);
+      const end = inputDate(endEl);
+      if (start && end && start.getTime() > end.getTime()){
+        show(errEl, "Start date must be on or before End date.");
+        return;
+      }
+
+      const records = extractRecords(text, allowedSet);
+      const inRange = filterRecordsByRange(records, start, end);
+      openExportModal(buildExportText(inRange));
+    });
+
+    btnClear.addEventListener("click", () => {
+      logsEl.value = "";
+      startEl.value = "";
+      endEl.value = "";
+      rowsEl.innerHTML = '<tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>';
+      totalEl.textContent = "00:00";
+      show(errEl, "");
+      show(okEl, "");
+      metaEl.textContent = "";
+      closeExportModal();
+      logsEl.focus();
+    });
+  }
+
+  wireDivision({
+    logsEl: document.getElementById("logsFRS"),
+    startEl: document.getElementById("startDateFRS"),
+    endEl: document.getElementById("endDateFRS"),
+    btnGet: document.getElementById("getHoursFRS"),
+    btnExport: document.getElementById("exportFRS"),
+    btnClear: document.getElementById("clearFRS"),
+    errEl: document.getElementById("errFRS"),
+    okEl: document.getElementById("okFRS"),
+    metaEl: document.getElementById("metaFRS"),
+    rowsEl: document.getElementById("rowsFRS"),
+    totalEl: document.getElementById("totalFRS"),
+    allowedSet: FRS_ALLOWED
   });
 
-  // Export data button
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    show(appErr, "");
-    show(appOk, "");
-
-    const text = logsEl.value || "";
-    if (!text.trim()){
-      show(appErr, "Paste logs first (then export).");
-      return;
-    }
-
-    const start = inputDate(startEl);
-    const end = inputDate(endEl);
-    if (start && end && start.getTime() > end.getTime()){
-      show(appErr, "Start date must be on or before End date.");
-      return;
-    }
-
-    const records = extractRecords(text);
-    const recordsInRange = filterRecordsByRange(records, start, end);
-
-    const exportOut = buildExportText(recordsInRange);
-    openExportModal(exportOut || "");
+  wireDivision({
+    logsEl: document.getElementById("logsHW"),
+    startEl: document.getElementById("startDateHW"),
+    endEl: document.getElementById("endDateHW"),
+    btnGet: document.getElementById("getHoursHW"),
+    btnExport: document.getElementById("exportHW"),
+    btnClear: document.getElementById("clearHW"),
+    errEl: document.getElementById("errHW"),
+    okEl: document.getElementById("okHW"),
+    metaEl: document.getElementById("metaHW"),
+    rowsEl: document.getElementById("rowsHW"),
+    totalEl: document.getElementById("totalHW"),
+    allowedSet: HW_ALLOWED
   });
 
-  // Clear button
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    logsEl.value = "";
-    startEl.value = "";
-    endEl.value = "";
-    resultsBody.innerHTML = '<tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>';
-    kpiTotal.textContent = "00:00";
-    show(appErr, "");
-    show(appOk, "");
-    metaEl.textContent = "";
-    closeExportModal();
-    logsEl.focus();
-  });
-
-  logsEl.focus();
+  // start at home
+  setActivePage("home");
 })();
 </script>
-
 </body>
 </html>
