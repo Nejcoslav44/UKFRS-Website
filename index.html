@@ -19,17 +19,12 @@
     --rowGreenBorder: rgba(124, 255, 167, 0.35);
 
     /* per-division accents (overridden by body class) */
-    --accentBg: #ff3b3b;
+    --accentBg: #ff2b2b;
     --accentText: #ffffff;
 
-    /* background assets (edit these filenames if you rename files) */
-    --homeBgImage: url("F999_photo"); /* e.g. F999_photo.jpg OR F999_photo.png (see note below) */
+    /* HOME background image */
+    --homeBgImage: url("F999_photo"); /* set to e.g. url("F999_photo.jpg") or url("F999_photo.png") */
   }
-
-  /* IMPORTANT:
-     If your file is "F999_photo.jpg", set:  --homeBgImage: url("F999_photo.jpg");
-     If it's "F999_photo.png", set:  --homeBgImage: url("F999_photo.png");
-  */
 
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -41,7 +36,7 @@
     overflow-x:hidden;
   }
 
-  /* ===== LIVE BACKGROUND VIDEO (shared base) ===== */
+  /* ===== LIVE BACKGROUND VIDEO ===== */
   .bg-video-wrap{
     position:fixed;
     inset:0;
@@ -59,13 +54,13 @@
     filter:none;
   }
 
-  /* ===== HOME BACKGROUND (image) ===== */
+  /* ===== HOME BG IMAGE ===== */
   .home-bg{
     position:fixed;
     inset:0;
     z-index:-5;
     background:
-      linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.55)),
+      linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.58)),
       var(--homeBgImage);
     background-size:cover;
     background-position:center;
@@ -227,7 +222,6 @@
   .kpi .v{font-size:20px;font-weight:800;margin-top:4px;}
   .foot{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.35;}
 
-  /* Quota rows */
   tr.quota-missing td{
     background: var(--rowRedBg);
     border-bottom-color: var(--rowRedBorder);
@@ -287,7 +281,7 @@
   .page{display:none;}
   .page.active{display:block;}
 
-  /* ===== HOME PAGE (circular buttons) ===== */
+  /* ===== HOME: GTA-STYLE WEAPON WHEEL (ONE CIRCLE, TWO SLICES) ===== */
   .home-center{
     min-height: calc(100vh - 120px);
     display:flex;
@@ -312,71 +306,101 @@
   .home-title h1{margin:0;font-size:30px;}
   .home-title p{margin:6px 0 0;color:var(--muted);font-size:14px;}
 
-  .circle-grid{
-    display:grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
+  .wheel-wrap{
+    display:flex;
+    justify-content:center;
     align-items:center;
+    padding: 12px 0 6px;
   }
-  @media(min-width:720px){
-    .circle-grid{grid-template-columns: 1fr 1fr;}
+  .wheel{
+    width: min(520px, 88vw);
+    aspect-ratio: 1/1;
+    border-radius: 999px;
+    position:relative;
+    overflow:hidden;
+    border: 1px solid rgba(255,255,255,.18);
+    box-shadow: 0 30px 70px rgba(0,0,0,.45);
+    background: rgba(0,0,0,.10);
   }
 
-  .circle-btn{
-    aspect-ratio: 1 / 1;
-    width: 100%;
-    max-width: 360px;
-    margin: 0 auto;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.16);
-    box-shadow: 0 30px 70px rgba(0,0,0,.45);
+  /* two slices */
+  .slice{
+    position:absolute;
+    inset:0;
+    cursor:pointer;
+    user-select:none;
     display:flex;
     align-items:center;
     justify-content:center;
-    text-align:center;
-    cursor:pointer;
-    user-select:none;
-    position:relative;
-    overflow:hidden;
-    transition: transform .12s ease, filter .12s ease;
+    transition: filter .12s ease, transform .12s ease;
   }
-  .circle-btn:active{transform: scale(.99);}
+  .slice:active{transform: scale(.995);}
 
-  .circle-btn .inner{
-    padding: 22px;
+  /* left half (UKFRS) */
+  .slice.frs{
+    clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+    background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.14), rgba(0,0,0,.10)),
+                linear-gradient(135deg, #ff2b2b, #b30000);
+    color:#fff;
+  }
+
+  /* right half (UKHW) */
+  .slice.hw{
+    clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+    background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.12), rgba(0,0,0,.08)),
+                linear-gradient(135deg, #ffd000, #ffb300);
+    color:#111;
+  }
+
+  .slice:hover{filter: brightness(1.05);}
+  .slice .inner{
+    text-align:center;
+    padding: 24px;
     display:flex;
     flex-direction:column;
     gap:10px;
     align-items:center;
     justify-content:center;
   }
-  .circle-btn .big{
+  .slice .big{
     font-size: 28px;
     font-weight: 900;
     letter-spacing: .5px;
   }
-  .circle-btn .small{
+  .slice .small{
     font-size: 13px;
-    opacity:.9;
-    max-width: 22ch;
+    opacity:.92;
     line-height: 1.35;
+    max-width: 24ch;
   }
 
-  /* UKFRS circle */
-  .circle-frs{
-    background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.14), rgba(0,0,0,.12)),
-                linear-gradient(135deg, #ff2b2b, #b30000);
-    color: #fff;
+  /* center hub */
+  .hub{
+    position:absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%,-50%);
+    width: 44%;
+    aspect-ratio:1/1;
+    border-radius:999px;
+    background: rgba(10,12,18,0.55);
+    border: 1px solid rgba(255,255,255,.16);
+    backdrop-filter: blur(14px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding: 14px;
+    pointer-events:none; /* let clicks hit slices */
   }
-
-  /* UKHW circle */
-  .circle-hw{
-    background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.12), rgba(0,0,0,.10)),
-                linear-gradient(135deg, #ffd000, #ffb300);
-    color: #111;
+  .hub .hubtxt{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
   }
+  .hub .t1{font-weight:900; letter-spacing:.3px;}
+  .hub .t2{color:var(--muted); font-size:12px; line-height:1.25;}
 
-  /* Division themes */
+  /* Division themes (for button colors inside pages) */
   body.theme-frs{
     --accentBg: #ff2b2b;
     --accentText: #ffffff;
@@ -386,11 +410,10 @@
     --accentText: #111111;
   }
 
-  /* subtle back button */
-  .backbar{
-    display:flex;
-    justify-content:flex-end;
-    margin-bottom: 10px;
+  /* Menu button (top right inside tracker pages) */
+  .menuBtn{
+    padding:10px 14px;
+    border-radius:999px;
   }
 </style>
 </head>
@@ -400,7 +423,7 @@
   <!-- HOME background image -->
   <div id="homeBg" class="home-bg" aria-hidden="true"></div>
 
-  <!-- LIVE background video (used for UKFRS + UKHW pages) -->
+  <!-- LIVE background video (used for tracker pages) -->
   <div id="videoBgWrap" class="bg-video-wrap" aria-hidden="true" style="display:none;">
     <video id="bgVideo" class="bg-video" autoplay muted loop playsinline preload="auto">
       <source id="bgVideoSource" src="./UKFRS_website_video.mp4" type="video/mp4">
@@ -420,24 +443,33 @@
             <div class="pill">F999 System</div>
           </div>
 
-          <div class="circle-grid">
-            <div class="circle-btn circle-frs" id="goFRS" role="button" tabindex="0" aria-label="Open UKFRS">
-              <div class="inner">
-                <div class="big">UKFRS</div>
-                <div class="small">Fire & Rescue<br>F1–F12</div>
+          <div class="wheel-wrap">
+            <div class="wheel" aria-label="Division selector">
+              <div class="slice frs" id="goFRS" role="button" tabindex="0" aria-label="Open UKFRS">
+                <div class="inner">
+                  <div class="big">UKFRS</div>
+                  <div class="small">Fire & Rescue<br>F1–F12</div>
+                </div>
               </div>
-            </div>
 
-            <div class="circle-btn circle-hw" id="goHW" role="button" tabindex="0" aria-label="Open UKHW">
-              <div class="inner">
-                <div class="big">UKHW</div>
-                <div class="small">Highways<br>U1–U6, ST7–ST10</div>
+              <div class="slice hw" id="goHW" role="button" tabindex="0" aria-label="Open UKHW">
+                <div class="inner">
+                  <div class="big">UKHW</div>
+                  <div class="small">Highways<br>U1–U6, ST7–ST10</div>
+                </div>
+              </div>
+
+              <div class="hub" aria-hidden="true">
+                <div class="hubtxt">
+                  <div class="t1">Choose Division</div>
+                  <div class="t2">Click left or right</div>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="foot" style="margin-top:14px;">
-            Tip: Put your background image file in the repo and set <span style="font-family:var(--mono)">--homeBgImage</span> at the top of the CSS to match the filename.
+            Home background: set <span style="font-family:var(--mono)">--homeBgImage</span> to your real filename (e.g. <span style="font-family:var(--mono)">F999_photo.jpg</span>).
           </div>
         </div>
       </div>
@@ -447,16 +479,12 @@
   <!-- UKFRS PAGE -->
   <div id="pageFRS" class="page">
     <div class="wrap">
-      <div class="backbar">
-        <button class="secondary" id="backFromFRS">Back</button>
-      </div>
-
       <div class="top">
         <div class="brand">
           <h1>UKFRS Duty Hours</h1>
           <p>Callsigns: F1–F12. Filtered by <b>Ended</b> date.</p>
         </div>
-        <div class="pill">Theme: Red</div>
+        <button class="secondary menuBtn" id="menuFromFRS">Menu</button>
       </div>
 
       <div class="grid">
@@ -518,16 +546,12 @@
   <!-- UKHW PAGE -->
   <div id="pageHW" class="page">
     <div class="wrap">
-      <div class="backbar">
-        <button class="secondary" id="backFromHW">Back</button>
-      </div>
-
       <div class="top">
         <div class="brand">
           <h1>UKHW Duty Hours</h1>
           <p>Callsigns: U1–U6 and ST7–ST10. Filtered by <b>Ended</b> date.</p>
         </div>
-        <div class="pill">Theme: Yellow</div>
+        <button class="secondary menuBtn" id="menuFromHW">Menu</button>
       </div>
 
       <div class="grid">
@@ -605,12 +629,11 @@
   // ========= CONFIG =========
   const QUOTA_MINUTES = 6 * 60;
 
-  // Background video sources:
-  // - UKFRS uses UKFRS_website_video.mp4 (your existing file)
-  // - UKHW also uses the same live background by default.
-  //   If you want a different one, upload it and change UKHW_VIDEO below.
+  // ✅ IMPORTANT: give UKHW its own live background file.
+  // Put this file in the repo root next to index.html.
+  // If your filename is different, change it here.
   const FRS_VIDEO = "./UKFRS_website_video.mp4";
-  const HW_VIDEO  = "./UKFRS_website_video.mp4";
+  const HW_VIDEO  = "./UKHW_website_video.mp4";
 
   // ========= PAGE SWITCHING =========
   const pageHome = document.getElementById("pageHome");
@@ -621,8 +644,28 @@
   const bgVideo = document.getElementById("bgVideo");
   const bgVideoSource = document.getElementById("bgVideoSource");
 
+  function tryPlayVideo(){
+    if (!bgVideo) return;
+    bgVideo.muted = true;
+    const p = bgVideo.play();
+    if (p && typeof p.catch === "function") p.catch(()=>{});
+  }
+  document.addEventListener("click", tryPlayVideo, { once:true });
+  document.addEventListener("touchstart", tryPlayVideo, { once:true });
+
+  function setVideoSource(src){
+    if (!src) return;
+    if (bgVideoSource.getAttribute("src") === src) {
+      tryPlayVideo();
+      return;
+    }
+    bgVideo.pause();
+    bgVideoSource.setAttribute("src", src);
+    bgVideo.load();
+    tryPlayVideo();
+  }
+
   function setActivePage(which){
-    // hide all
     pageHome.classList.remove("active");
     pageFRS.classList.remove("active");
     pageHW.classList.remove("active");
@@ -636,7 +679,6 @@
       return;
     }
 
-    // show video background
     homeBg.style.display = "none";
     videoBgWrap.style.display = "block";
 
@@ -657,51 +699,30 @@
     }
   }
 
-  function setVideoSource(src){
-    if (!src) return;
-    if (bgVideoSource.getAttribute("src") === src) {
-      // already set; still nudge play
-      tryPlayVideo();
-      return;
-    }
-    bgVideo.pause();
-    bgVideoSource.setAttribute("src", src);
-    bgVideo.load();
-    tryPlayVideo();
-  }
+  // Home selectors
+  const goFRS = document.getElementById("goFRS");
+  const goHW  = document.getElementById("goHW");
 
-  function tryPlayVideo(){
-    if (!bgVideo) return;
-    bgVideo.muted = true;
-    const p = bgVideo.play();
-    if (p && typeof p.catch === "function") p.catch(()=>{});
-  }
-  // autoplay nudge
-  document.addEventListener("click", tryPlayVideo, { once:true });
-  document.addEventListener("touchstart", tryPlayVideo, { once:true });
+  goFRS.addEventListener("click", () => setActivePage("frs"));
+  goHW.addEventListener("click",  () => setActivePage("hw"));
 
-  // Home buttons
-  document.getElementById("goFRS").addEventListener("click", () => setActivePage("frs"));
-  document.getElementById("goHW").addEventListener("click",  () => setActivePage("hw"));
-  document.getElementById("backFromFRS").addEventListener("click", () => setActivePage("home"));
-  document.getElementById("backFromHW").addEventListener("click",  () => setActivePage("home"));
-
-  // Keyboard activation for circles
   function keyActivate(el, fn){
     el.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); }
     });
   }
-  keyActivate(document.getElementById("goFRS"), () => setActivePage("frs"));
-  keyActivate(document.getElementById("goHW"),  () => setActivePage("hw"));
+  keyActivate(goFRS, () => setActivePage("frs"));
+  keyActivate(goHW,  () => setActivePage("hw"));
 
-  // ========= PARSING CORE =========
+  // ✅ Menu buttons (back to main menu)
+  document.getElementById("menuFromFRS").addEventListener("click", () => setActivePage("home"));
+  document.getElementById("menuFromHW").addEventListener("click",  () => setActivePage("home"));
+
+  // ========= PARSING =========
   const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF]/g;
   function cleanLine(s){ return String(s ?? "").replace(/\r?\n$/, "").replace(ZERO_WIDTH_RE, ""); }
 
-  // NOTE: Duty Ended line can start with F, U, or ST.
   const DUTY_ENDED_RE = /\b((?:F(?:[1-9]|1[0-2]))|(?:U[1-6])|(?:ST(?:[7-9]|10)))\s*[—–-]\s*Duty\s+Ended\b/i;
-
   const CALLSIGN_LINE_RE = /^\s*Callsign:\s*([A-Z]{1,2}\d{1,2})\s*$/i;
   const DURATION_LINE_RE = /^\s*Duration:\s*(.+?)\s*$/i;
   const ENDED_LINE_RE    = /^\s*Ended:\s*(.+?)\s*$/i;
@@ -716,6 +737,7 @@
       y>=1970 && y<=2100 && m>=0 && m<=11 && d>=1 && d<=31 &&
       dt.getFullYear()===y && dt.getMonth()===m && dt.getDate()===d;
   }
+
   function formatMDY(d){
     const mm = String(d.getMonth()+1);
     const dd = String(d.getDate());
@@ -735,18 +757,12 @@
     return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
   }
 
-  // Parse Ended -> local midnight Date. Supports your mixed formats + noisy prefixes.
   function parseEndedToDate(endedText){
     let t = cleanLine(endedText).trim();
-
-    // remove "[18:27]" prefix
     t = t.replace(/^\[\d{1,2}:\d{2}\]\s*/, "");
-
-    // fix "— 18:47Monday, 23 February..." style: insert a space after time if missing
     t = t.replace(/^(\d{1,2}:\d{2})([A-Za-z])/, "$1 $2");
 
-    // A) Day-first with optional weekday:
-    // "Sunday, 22 February 2026 21:46" or "Sunday 22 February 2026 21:46"
+    // Day-first (UKHW samples): "Sunday, 22 February 2026 21:46"
     const mA = /^(?:[A-Za-z]+(?:day)?[,\s]+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mA) {
       const day = Number(mA[1]);
@@ -756,8 +772,7 @@
       return new Date(year, mon, day);
     }
 
-    // B) Month-name with optional weekday and commas:
-    // "Thursday, January 29, 2026 10:04 PM"
+    // Month-name (UKFRS): "Thursday, January 29, 2026 10:04 PM"
     const mB = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mB) {
       const mon = MONTHS[mB[1].toLowerCase()];
@@ -767,7 +782,7 @@
       return new Date(year, mon, day);
     }
 
-    // C) Numeric date with time (M/D or D/M)
+    // Numeric with time (M/D or D/M)
     const mC = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?\s*$/i.exec(t);
     if (mC) {
       const a = Number(mC[1]);
@@ -779,7 +794,6 @@
       return new Date(year, mo, day);
     }
 
-    // D) Numeric date + 24h time
     const mD = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s*$/.exec(t);
     if (mD) {
       const a = Number(mD[1]);
@@ -795,7 +809,7 @@
   }
 
   function inputDate(el){
-    const v = (el.value || "").trim(); // "YYYY-MM-DD"
+    const v = (el.value || "").trim();
     if (!v) return null;
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
     if (!m) return null;
@@ -810,12 +824,8 @@
     return `<span class="badge red">Remaining: ${minutesToHHMM(remaining)}</span>`;
   }
 
-  // Allowed callsigns
   const FRS_ALLOWED = new Set(Array.from({length:12}, (_,i)=>`F${i+1}`));
-  const HW_ALLOWED  = new Set([
-    "U1","U2","U3","U4","U5","U6",
-    "ST7","ST8","ST9","ST10"
-  ]);
+  const HW_ALLOWED  = new Set(["U1","U2","U3","U4","U5","U6","ST7","ST8","ST9","ST10"]);
 
   function extractRecords(logText, allowedSet){
     const lines = String(logText || "").split("\n").map(cleanLine);
@@ -828,7 +838,6 @@
 
     function finalize(){
       if (!inBlock) return;
-
       if (
         block_callsign &&
         allowedSet.has(block_callsign) &&
@@ -836,17 +845,9 @@
         block_minutes > 0 &&
         block_endedDate instanceof Date
       ) {
-        records.push({
-          callsign: block_callsign,
-          ended: block_endedDate,
-          minutes: block_minutes
-        });
+        records.push({ callsign: block_callsign, ended: block_endedDate, minutes: block_minutes });
       }
-
-      inBlock=false;
-      block_callsign=null;
-      block_minutes=null;
-      block_endedDate=null;
+      inBlock=false; block_callsign=null; block_minutes=null; block_endedDate=null;
     }
 
     for (const line of lines) {
@@ -857,20 +858,13 @@
         block_callsign = String(mStart[1] || "").toUpperCase();
         continue;
       }
-
       if (!inBlock) continue;
 
       const mCS = CALLSIGN_LINE_RE.exec(line);
-      if (mCS) {
-        block_callsign = String(mCS[1] || "").toUpperCase();
-        continue;
-      }
+      if (mCS) { block_callsign = String(mCS[1] || "").toUpperCase(); continue; }
 
       const mDur = DURATION_LINE_RE.exec(line);
-      if (mDur) {
-        block_minutes = durationToMinutes(mDur[1]);
-        continue;
-      }
+      if (mDur) { block_minutes = durationToMinutes(mDur[1]); continue; }
 
       const mEnd = ENDED_LINE_RE.exec(line);
       if (mEnd) {
@@ -879,7 +873,6 @@
         continue;
       }
     }
-
     finalize();
     return records;
   }
@@ -896,12 +889,10 @@
 
   function buildExportText(recordsInRange){
     const sorted = [...recordsInRange].sort((a,b) => {
-      const da = a.ended.getTime(), db = b.ended.getTime();
+      const da=a.ended.getTime(), db=b.ended.getTime();
       if (da !== db) return da - db;
-      if (a.callsign !== b.callsign) return a.callsign.localeCompare(b.callsign);
-      return a.minutes - b.minutes;
+      return a.callsign.localeCompare(b.callsign);
     });
-
     return sorted.map(r => `${r.callsign}\t${formatMDY(r.ended)}\t${minutesToHHMM(r.minutes)}`).join("\n");
   }
 
@@ -916,18 +907,15 @@
   function renderTotals(totals, tbodyEl, totalEl){
     tbodyEl.innerHTML = "";
     const keys = Object.keys(totals).sort();
-
     if (keys.length === 0){
       tbodyEl.innerHTML = '<tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>';
       totalEl.textContent = "00:00";
       return 0;
     }
-
     let grand = 0;
     for (const cs of keys){
       const mins = totals[cs];
       grand += mins;
-
       const tr = document.createElement("tr");
       tr.className = (mins >= QUOTA_MINUTES) ? "quota-complete" : "quota-missing";
       tr.innerHTML = `
@@ -937,7 +925,6 @@
       `;
       tbodyEl.appendChild(tr);
     }
-
     totalEl.textContent = minutesToHHMM(grand);
     return grand;
   }
@@ -957,7 +944,6 @@
     exportText.select();
   }
   function closeExportModal(){ exportBackdrop.style.display = "none"; }
-
   exportBackdrop.addEventListener("click", (e) => { if (e.target === exportBackdrop) closeExportModal(); });
   closeExportBtn.addEventListener("click", closeExportModal);
   copyExportBtn.addEventListener("click", async () => {
@@ -969,7 +955,7 @@
     }
   });
 
-  // ========= WIRING: UKFRS =========
+  // ========= DIVISION WIRING =========
   function wireDivision(opts){
     const {
       logsEl, startEl, endEl,
@@ -988,10 +974,7 @@
       show(errEl, ""); show(okEl, ""); metaEl.textContent = "";
 
       const text = logsEl.value || "";
-      if (!text.trim()){
-        show(errEl, "Paste logs first.");
-        return;
-      }
+      if (!text.trim()){ show(errEl, "Paste logs first."); return; }
 
       const start = inputDate(startEl);
       const end = inputDate(endEl);
@@ -1011,12 +994,8 @@
 
     btnExport.addEventListener("click", () => {
       show(errEl, ""); show(okEl, "");
-
       const text = logsEl.value || "";
-      if (!text.trim()){
-        show(errEl, "Paste logs first (then export).");
-        return;
-      }
+      if (!text.trim()){ show(errEl, "Paste logs first (then export)."); return; }
 
       const start = inputDate(startEl);
       const end = inputDate(endEl);
