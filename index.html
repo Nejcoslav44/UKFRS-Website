@@ -21,8 +21,12 @@
     --accentBg: #ff2b2b;
     --accentText: #ffffff;
 
-    /* HOME background image */
-    --homeBgImage: url("F999_photo"); /* set to e.g. url("F999_photo.jpg") or url("F999_photo.png") */
+    /* HOME background image (CHANGE THIS to your actual file) */
+    --homeBgImage: url("F999_photo.jpg");
+    /* Examples:
+       --homeBgImage: url("F999_photo.png");
+       --homeBgImage: url("F999_photo.webp");
+    */
   }
 
   *{box-sizing:border-box}
@@ -139,6 +143,19 @@
     font-family:var(--mono);
     font-size:12px;
     line-height:1.45;
+  }
+
+  /* ✅ CHANGE #2: WHITE DATE PICKERS (easy to see) */
+  input[type="date"]{
+    background: rgba(255,255,255,0.92) !important;
+    color: #111 !important;
+    border: 1px solid rgba(0,0,0,0.25) !important;
+    color-scheme: light;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator{
+    filter: invert(0);
+    opacity: 0.9;
+    cursor: pointer;
   }
 
   .row{
@@ -345,11 +362,10 @@
   }
   .slice:hover{filter: brightness(1.05);}
 
-  /* curved text overlay */
   .wheelText{
     position:absolute;
     inset:0;
-    pointer-events:none; /* clicks go through to slices */
+    pointer-events:none;
   }
   .wheelText text{
     font-family: var(--sans);
@@ -359,7 +375,6 @@
   .wheelText .frsText{ fill:#ffffff; }
   .wheelText .hwText{ fill:#111111; }
 
-  /* center hub */
   .hub{
     position:absolute;
     inset: 50% auto auto 50%;
@@ -381,7 +396,6 @@
   .hub .t1{font-weight:900; letter-spacing:.3px;}
   .hub .t2{color:var(--muted); font-size:12px; line-height:1.25;}
 
-  /* Division themes */
   body.theme-frs{
     --accentBg: #ff2b2b;
     --accentText: #ffffff;
@@ -391,7 +405,6 @@
     --accentText: #111111;
   }
 
-  /* Menu button */
   .menuBtn{
     padding:10px 14px;
     border-radius:999px;
@@ -429,11 +442,10 @@
               <div class="slice frs" id="goFRS" role="button" tabindex="0" aria-label="Open UKFRS"></div>
               <div class="slice hw" id="goHW" role="button" tabindex="0" aria-label="Open UKHW"></div>
 
-              <!-- ✅ Curved labels near the edge -->
               <svg class="wheelText" viewBox="0 0 100 100" aria-hidden="true">
                 <defs>
-                  <path id="arcLeft"  d=""></path>
-                  <path id="arcRight" d=""></path>
+                  <path id="arcLeft"></path>
+                  <path id="arcRight"></path>
                 </defs>
 
                 <text class="frsText" font-size="7">
@@ -455,7 +467,7 @@
           </div>
 
           <div class="foot" style="margin-top:14px;">
-            Home background: set <span style="font-family:var(--mono)">--homeBgImage</span> to your real filename (e.g. <span style="font-family:var(--mono)">F999_photo.jpg</span>).
+            Home background: set <span style="font-family:var(--mono)">--homeBgImage</span> at the top of the CSS to your real filename.
           </div>
         </div>
       </div>
@@ -615,17 +627,16 @@
   // ========= CONFIG =========
   const QUOTA_MINUTES = 6 * 60;
 
-  // Put both video files in the repo root next to index.html
+  // Put both video files next to index.html
   const FRS_VIDEO = "./UKFRS_website_video.mp4";
   const HW_VIDEO  = "./UKHW_website_video.mp4";
 
-  // ========= CURVED TEXT PATHS (weapon wheel labels) =========
+  // ========= CURVED TEXT PATHS =========
   function polarToCartesian(cx, cy, r, deg){
     const rad = (deg - 90) * Math.PI / 180;
     return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
   }
   function describeArc(cx, cy, r, startAngle, endAngle){
-    // normalize (allow wrap)
     let s = startAngle, e = endAngle;
     if (e < s) e += 360;
 
@@ -633,22 +644,17 @@
     const end   = polarToCartesian(cx, cy, r, e);
 
     const largeArcFlag = (e - s) <= 180 ? "0" : "1";
-    const sweepFlag = "1"; // clockwise
+    const sweepFlag = "1";
 
     return `M ${start.x.toFixed(3)} ${start.y.toFixed(3)} A ${r} ${r} 0 ${largeArcFlag} ${sweepFlag} ${end.x.toFixed(3)} ${end.y.toFixed(3)}`;
   }
 
-  // Place text “inside but near edge”: use radius ~44 (viewBox is 0..100, wheel edge ~50)
   const arcLeft  = document.getElementById("arcLeft");
   const arcRight = document.getElementById("arcRight");
 
-  // Left side arc (UKFRS): around left outer curve
-  // (Angles chosen to sit near edge and read nicely)
-  arcLeft.setAttribute("d", describeArc(50, 50, 44, 145, 215));
-
-  // Right side arc (UKHW): around right outer curve
-  // Wrap handled by describeArc
-  arcRight.setAttribute("d", describeArc(50, 50, 44, 325, 35));
+  // ✅ CHANGE #1: ROTATED +90 DEGREES FROM PREVIOUS VALUES
+  arcLeft.setAttribute("d",  describeArc(50, 50, 44, 235, 305));
+  arcRight.setAttribute("d", describeArc(50, 50, 44, 55, 125));
 
   // ========= PAGE SWITCHING =========
   const pageHome = document.getElementById("pageHome");
@@ -752,10 +758,7 @@
   }
 
   function formatMDY(d){
-    const mm = String(d.getMonth()+1);
-    const dd = String(d.getDate());
-    const yyyy = String(d.getFullYear());
-    return `${mm}/${dd}/${yyyy}`;
+    return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;
   }
 
   function durationToMinutes(t){
@@ -775,7 +778,7 @@
     t = t.replace(/^\[\d{1,2}:\d{2}\]\s*/, "");
     t = t.replace(/^(\d{1,2}:\d{2})([A-Za-z])/, "$1 $2");
 
-    // Day-first: "Sunday, 22 February 2026 21:46"
+    // Day-first (UKHW): "Sunday, 22 February 2026 21:46"
     const mA = /^(?:[A-Za-z]+(?:day)?[,\s]+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mA) {
       const day = Number(mA[1]);
@@ -785,7 +788,7 @@
       return new Date(year, mon, day);
     }
 
-    // Month-name: "Thursday, January 29, 2026 10:04 PM"
+    // Month-name (UKFRS): "Thursday, January 29, 2026 10:04 PM"
     const mB = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mB) {
       const mon = MONTHS[mB[1].toLowerCase()];
@@ -822,7 +825,7 @@
   }
 
   function inputDate(el){
-    const v = (el.value || "").trim();
+    const v = (el.value || "").trim(); // YYYY-MM-DD
     if (!v) return null;
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
     if (!m) return null;
@@ -957,6 +960,7 @@
     exportText.select();
   }
   function closeExportModal(){ exportBackdrop.style.display = "none"; }
+
   exportBackdrop.addEventListener("click", (e) => { if (e.target === exportBackdrop) closeExportModal(); });
   closeExportBtn.addEventListener("click", closeExportModal);
   copyExportBtn.addEventListener("click", async () => {
@@ -968,7 +972,6 @@
     }
   });
 
-  // ========= DIVISION WIRING =========
   function wireDivision(opts){
     const {
       logsEl, startEl, endEl,
@@ -985,8 +988,12 @@
 
     btnGet.addEventListener("click", () => {
       show(errEl, ""); show(okEl, ""); metaEl.textContent = "";
+
       const text = logsEl.value || "";
-      if (!text.trim()){ show(errEl, "Paste logs first."); return; }
+      if (!text.trim()){
+        show(errEl, "Paste logs first.");
+        return;
+      }
 
       const start = inputDate(startEl);
       const end = inputDate(endEl);
@@ -1006,8 +1013,12 @@
 
     btnExport.addEventListener("click", () => {
       show(errEl, ""); show(okEl, "");
+
       const text = logsEl.value || "";
-      if (!text.trim()){ show(errEl, "Paste logs first (then export)."); return; }
+      if (!text.trim()){
+        show(errEl, "Paste logs first (then export).");
+        return;
+      }
 
       const start = inputDate(startEl);
       const end = inputDate(endEl);
