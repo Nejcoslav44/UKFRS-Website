@@ -510,6 +510,8 @@
 
           <div class="btnrow">
             <button id="getHoursFRS">Get hours</button>
+            <button id="fromMondayFRS" class="secondary">From Monday</button>
+            <button id="statsFRS" class="secondary" style="display:none;">Statistics</button>
             <button id="exportFRS" class="secondary">Export data</button>
             <button id="clearFRS" class="secondary">Clear</button>
           </div>
@@ -577,6 +579,8 @@
 
           <div class="btnrow">
             <button id="getHoursHW">Get hours</button>
+            <button id="fromMondayHW" class="secondary">From Monday</button>
+            <button id="statsHW" class="secondary" style="display:none;">Statistics</button>
             <button id="exportHW" class="secondary">Export data</button>
             <button id="clearHW" class="secondary">Clear</button>
           </div>
@@ -626,6 +630,51 @@
         <button id="closeExportBtn" class="secondary">Close</button>
       </div>
       <div id="copyMsg" class="smallmuted"></div>
+    </div>
+  </div>
+
+  <!-- STATS MODAL -->
+  <div id="statsBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Statistics">
+    <div class="modal">
+      <h3>Statistics (selected range)</h3>
+
+      <div class="kpi" style="margin-top:10px;">
+        <div class="box">
+          <div class="t">Shifts in range</div>
+          <div class="v" id="statShiftCount">0</div>
+        </div>
+        <div class="box">
+          <div class="t">Average shift</div>
+          <div class="v" id="statAvgShift">00:00</div>
+        </div>
+        <div class="box">
+          <div class="t">Longest shift</div>
+          <div class="v" id="statMaxShift">00:00</div>
+        </div>
+        <div class="box">
+          <div class="t">Quota completed</div>
+          <div class="v" id="statQuotaCount">0/0</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Hours by weekday (based on Ended date)</div>
+        <canvas id="chartWeekday" style="width:100%;height:240px;"></canvas>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Total hours by callsign</div>
+        <canvas id="chartCallsign" style="width:100%;height:260px;"></canvas>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Shift length distribution (minutes)</div>
+        <canvas id="chartDist" style="width:100%;height:240px;"></canvas>
+      </div>
+
+      <div class="actions">
+        <button id="closeStatsBtn" class="secondary">Close</button>
+      </div>
     </div>
   </div>
 
@@ -861,7 +910,8 @@
       if (mCS) { block_callsign = String(mCS[1] || "").toUpperCase(); continue; }
 
       const mDur = DURATION_LINE_RE.exec(line);
-      if (mDur) { block_minutes = durationTo_minutes(mDur[1]); continue; } // <-- fixed below
+      if (mDur) { block_minutes = durationToMinutes(mDur[1]); continue; }
+
       const mEnd = ENDED_LINE_RE.exec(line);
       if (mEnd) {
         block_endedDate = parseEndedToDate(mEnd[1]);
@@ -872,9 +922,6 @@
     finalize();
     return records;
   }
-
-  // fix typo safely (if browser caches older JS)
-  function durationTo_minutes(x){ return durationToMinutes(x); }
 
   function filterRecordsByRange(records, start, end){
     const out = [];
@@ -928,6 +975,113 @@
     return grand;
   }
 
+  // ========= DATE PRESET HELPERS (From Monday) =========
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function dateToInputValue(d){
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+  function startOfThisMonday(today=new Date()){
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const day = d.getDay(); // 0=Sun..6=Sat
+    const diff = (day === 0) ? -6 : (1 - day);
+    d.setDate(d.getDate() + diff);
+    return d;
+  }
+
+  // ========= TINY CANVAS CHARTS (NO LIBS) =========
+  function setupCanvas(canvas){
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+  function clearCanvas(ctx, w, h){ ctx.clearRect(0,0,w,h); }
+
+  function drawBarChart(canvas, labels, values){
+    const ctx = setupCanvas(canvas);
+    const w = canvas.getBoundingClientRect().width;
+    const h = canvas.getBoundingClientRect().height;
+    clearCanvas(ctx, w, h);
+
+    const padL = 42, padR = 12, padT = 12, padB = 34;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+
+    const maxV = Math.max(1, ...values);
+    const n = values.length || 1;
+    const gap = 8;
+    const barW = Math.max(6, (innerW - gap*(n-1)) / n);
+
+    // axes
+    ctx.globalAlpha = 0.65;
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT);
+    ctx.lineTo(padL, padT + innerH);
+    ctx.lineTo(padL + innerW, padT + innerH);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    for (let i=0;i<n;i++){
+      const v = values[i] || 0;
+      const bh = (v / maxV) * innerH;
+      const x = padL + i*(barW+gap);
+      const y = padT + innerH - bh;
+
+      ctx.globalAlpha = 0.20;
+      ctx.fillStyle = "white";
+      ctx.fillRect(x, y, barW, bh);
+      ctx.globalAlpha = 0.55;
+      ctx.strokeStyle = "white";
+      ctx.strokeRect(x, y, barW, bh);
+      ctx.globalAlpha = 1;
+
+      ctx.fillStyle = "white";
+      ctx.globalAlpha = 0.8;
+      ctx.font = "12px ui-sans-serif, system-ui";
+      const lab = String(labels[i] ?? "");
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(lab, x + barW/2, padT + innerH + 10);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawHistogram(canvas, minutes, binSize=30, maxBins=12){
+    const ctx = setupCanvas(canvas);
+    const w = canvas.getBoundingClientRect().width;
+    const h = canvas.getBoundingClientRect().height;
+    clearCanvas(ctx, w, h);
+
+    const data = (minutes || []).filter(n => Number.isFinite(n) && n > 0);
+    if (data.length === 0){
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
+      ctx.font = "14px ui-sans-serif, system-ui";
+      ctx.fillText("No shift durations to chart.", 16, 30);
+      return;
+    }
+
+    const maxM = Math.max(...data);
+    const binsCount = Math.min(maxBins, Math.max(3, Math.ceil(maxM / binSize)));
+    const bins = Array.from({length: binsCount}, ()=>0);
+
+    for (const m of data){
+      const idx = Math.min(binsCount-1, Math.floor(m / binSize));
+      bins[idx]++;
+    }
+
+    const labels = bins.map((_,i)=>{
+      const a = i*binSize;
+      return (i===binsCount-1) ? `${a}+` : `${a}-${a+binSize-1}`;
+    });
+
+    drawBarChart(canvas, labels, bins);
+  }
+
   // ========= EXPORT MODAL =========
   const exportBackdrop = document.getElementById("exportBackdrop");
   const exportText = document.getElementById("exportText");
@@ -955,19 +1109,49 @@
     }
   });
 
+  // ========= STATS MODAL =========
+  const statsBackdrop = document.getElementById("statsBackdrop");
+  const closeStatsBtn = document.getElementById("closeStatsBtn");
+
+  const statShiftCount = document.getElementById("statShiftCount");
+  const statAvgShift   = document.getElementById("statAvgShift");
+  const statMaxShift   = document.getElementById("statMaxShift");
+  const statQuotaCount = document.getElementById("statQuotaCount");
+
+  const chartWeekday  = document.getElementById("chartWeekday");
+  const chartCallsign = document.getElementById("chartCallsign");
+  const chartDist     = document.getElementById("chartDist");
+
+  function closeStatsModal(){ statsBackdrop.style.display = "none"; }
+  function openStatsModal(){ statsBackdrop.style.display = "flex"; }
+
+  statsBackdrop.addEventListener("click", (e) => { if (e.target === statsBackdrop) closeStatsModal(); });
+  closeStatsBtn.addEventListener("click", closeStatsModal);
+
   function wireDivision(opts){
     const {
       logsEl, startEl, endEl,
       btnGet, btnExport, btnClear,
+      btnStats, btnFromMonday,
       errEl, okEl, metaEl,
       rowsEl, totalEl,
       allowedSet
     } = opts;
 
+    let lastRecordsInRange = null;
+    let lastTotals = null;
+
     function show(el, msg){
       el.style.display = msg ? "block" : "none";
       el.textContent = msg || "";
     }
+
+    btnFromMonday.addEventListener("click", () => {
+      const today = new Date();
+      const mon = startOfThisMonday(today);
+      startEl.value = dateToInputValue(mon);
+      endEl.value   = dateToInputValue(today);
+    });
 
     btnGet.addEventListener("click", () => {
       show(errEl, ""); show(okEl, ""); metaEl.textContent = "";
@@ -992,6 +1176,54 @@
       const grand = renderTotals(totals, rowsEl, totalEl);
       metaEl.textContent = `Parsed ${records.length} Duty Ended blocks. Kept ${inRange.length} in range.`;
       show(okEl, grand > 0 ? "Done." : "No matching shifts in that range.");
+
+      lastRecordsInRange = inRange;
+      lastTotals = totals;
+      btnStats.style.display = "inline-block";
+    });
+
+    btnStats.addEventListener("click", () => {
+      show(errEl, ""); show(okEl, "");
+
+      if (!lastRecordsInRange || !lastTotals){
+        show(errEl, "Click Get hours first.");
+        return;
+      }
+
+      const shiftCount = lastRecordsInRange.length;
+      const durations = lastRecordsInRange.map(r => r.minutes).filter(n => Number.isFinite(n) && n > 0);
+      const totalMins = durations.reduce((a,b)=>a+b, 0);
+      const avg = shiftCount ? Math.round(totalMins / shiftCount) : 0;
+      const max = durations.length ? Math.max(...durations) : 0;
+
+      const callsigns = Object.keys(lastTotals);
+      const quotaDone = callsigns.filter(cs => lastTotals[cs] >= QUOTA_MINUTES).length;
+
+      statShiftCount.textContent = String(shiftCount);
+      statAvgShift.textContent   = minutesToHHMM(avg);
+      statMaxShift.textContent   = minutesToHHMM(max);
+      statQuotaCount.textContent = `${quotaDone}/${callsigns.length}`;
+
+      // Hours by weekday (Mon..Sun)
+      const weekdayLabels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+      const weekdayMins = [0,0,0,0,0,0,0];
+      for (const r of lastRecordsInRange){
+        const d = r.ended.getDay(); // 0=Sun..6=Sat
+        const idx = (d === 0) ? 6 : (d - 1);
+        weekdayMins[idx] += r.minutes;
+      }
+      const weekdayHours = weekdayMins.map(m => Math.round((m/60)*10)/10);
+      drawBarChart(chartWeekday, weekdayLabels, weekdayHours);
+
+      // Total hours by callsign
+      const csSorted = [...callsigns].sort((a,b)=>a.localeCompare(b));
+      const csHours = csSorted.map(cs => Math.round((lastTotals[cs]/60)*10)/10);
+      drawBarChart(chartCallsign, csSorted, csHours);
+
+      // Shift length distribution
+      drawHistogram(chartDist, durations, 30, 12);
+
+      openStatsModal();
     });
 
     btnExport.addEventListener("click", () => {
@@ -1025,6 +1257,10 @@
       show(okEl, "");
       metaEl.textContent = "";
       closeExportModal();
+      closeStatsModal();
+      btnStats.style.display = "none";
+      lastRecordsInRange = null;
+      lastTotals = null;
       logsEl.focus();
     });
   }
@@ -1036,6 +1272,8 @@
     btnGet: document.getElementById("getHoursFRS"),
     btnExport: document.getElementById("exportFRS"),
     btnClear: document.getElementById("clearFRS"),
+    btnStats: document.getElementById("statsFRS"),
+    btnFromMonday: document.getElementById("fromMondayFRS"),
     errEl: document.getElementById("errFRS"),
     okEl: document.getElementById("okFRS"),
     metaEl: document.getElementById("metaFRS"),
@@ -1051,6 +1289,8 @@
     btnGet: document.getElementById("getHoursHW"),
     btnExport: document.getElementById("exportHW"),
     btnClear: document.getElementById("clearHW"),
+    btnStats: document.getElementById("statsHW"),
+    btnFromMonday: document.getElementById("fromMondayHW"),
     errEl: document.getElementById("errHW"),
     okEl: document.getElementById("okHW"),
     metaEl: document.getElementById("metaHW"),
