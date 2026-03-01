@@ -13,14 +13,17 @@
     --mono: ui-monospace, Consolas, monospace;
     --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 
-    --rowRedBg: rgba(255, 90, 90, 0.16);
-    --rowRedBorder: rgba(255, 90, 90, 0.35);
-    --rowGreenBg: rgba(124, 255, 167, 0.16);
-    --rowGreenBorder: rgba(124, 255, 167, 0.35);
-
     --accentBg: #ff2b2b;
     --accentText: #ffffff;
 
+    --quotaMinutes: 360;
+
+    /* Row progress colors */
+    --progGreen: rgba(124, 255, 167, 0.22);
+    --progRed: rgba(255, 90, 90, 0.18);
+    --rowBorder: rgba(255,255,255,.10);
+
+    /* HOME background image */
     --homeBgImage: url("F999_photo.jpg");
   }
 
@@ -41,6 +44,7 @@
     z-index:-5;
     overflow:hidden;
     background:#000;
+    display:none;
   }
   .bg-video{
     position:absolute;
@@ -118,7 +122,7 @@
     margin:10px 0 6px;
   }
 
-  textarea,input[type="date"]{
+  textarea,input[type="date"], select{
     width:100%;
     padding:12px;
     border-radius:12px;
@@ -128,7 +132,7 @@
     font-family:var(--sans);
     outline:none;
   }
-  textarea:focus,input[type="date"]:focus{
+  textarea:focus,input[type="date"]:focus, select:focus{
     border-color: rgba(255,255,255,.28);
   }
 
@@ -185,7 +189,7 @@
   }
   button:active{transform: translateY(1px);}
 
-  .error,.ok{
+  .error,.ok,.info{
     margin-top:10px;
     padding:10px 12px;
     border-radius:12px;
@@ -200,6 +204,11 @@
     background:rgba(124,255,167,.15);
     border:1px solid rgba(124,255,167,.4);
   }
+  .info{
+    background:rgba(150,180,255,.12);
+    border:1px solid rgba(150,180,255,.25);
+    color:var(--text);
+  }
 
   table{
     width:100%;
@@ -211,7 +220,7 @@
   }
   th,td{
     padding:10px;
-    border-bottom:1px solid rgba(255,255,255,.1);
+    border-bottom:1px solid var(--rowBorder);
     font-size:13px;
   }
   th{color:var(--muted);}
@@ -233,19 +242,9 @@
   .kpi .v{font-size:20px;font-weight:800;margin-top:4px;}
   .foot{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.35;}
 
-  tr.quota-missing td{
-    background: var(--rowRedBg);
-    border-bottom-color: var(--rowRedBorder);
-  }
-  tr.quota-complete td{
-    background: var(--rowGreenBg);
-    border-bottom-color: var(--rowGreenBorder);
-  }
-
   .badge{
     display:inline-flex;
     align-items:center;
-    gap:8px;
     padding:6px 10px;
     border-radius:999px;
     border:1px solid rgba(255,255,255,.12);
@@ -255,15 +254,15 @@
     white-space:nowrap;
   }
   .badge.red{
-    border-color: var(--rowRedBorder);
+    border-color: rgba(255,90,90,0.35);
     background: rgba(255,90,90,0.12);
   }
   .badge.green{
-    border-color: var(--rowGreenBorder);
+    border-color: rgba(124,255,167,0.35);
     background: rgba(124,255,167,0.12);
   }
 
-  /* ===== MODALS ===== */
+  /* ===== EXPORT / PROOF MODAL ===== */
   .modal-backdrop{
     position:fixed;
     inset:0;
@@ -274,7 +273,7 @@
     z-index:999;
   }
   .modal{
-    width:min(900px, 94vw);
+    width:min(960px, 94vw);
     max-height: 86vh;
     overflow:auto;
     border-radius: 18px;
@@ -288,14 +287,11 @@
   .modal textarea{min-height: 320px;background: rgba(0,0,0,0.35);}
   .smallmuted{color:var(--muted);font-size:12px;margin-top:6px;}
 
-  /* Ensure canvases render reliably */
-  canvas{ display:block; }
-
   /* ===== PAGES ===== */
   .page{display:none;}
   .page.active{display:block;}
 
-  /* ===== HOME: GTA-STYLE WHEEL ===== */
+  /* ===== HOME: WEAPON WHEEL (TWO SLICES) ===== */
   .home-center{
     min-height: calc(100vh - 120px);
     display:flex;
@@ -350,18 +346,15 @@
     clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
     background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.14), rgba(0,0,0,.10)),
                 linear-gradient(135deg, #ff2b2b, #b30000);
-    color:#fff;
   }
-
   .slice.hw{
     clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
     background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.12), rgba(0,0,0,.08)),
                 linear-gradient(135deg, #ffd000, #ffb300);
-    color:#111;
   }
-
   .slice:hover{filter: brightness(1.05);}
 
+  /* Crests on wheel */
   .crest-layer{
     position:absolute;
     inset:0;
@@ -377,8 +370,8 @@
     filter: drop-shadow(0 12px 22px rgba(0,0,0,.45));
     opacity: 0.98;
   }
-  .crest.frs{ left: 5%; }
-  .crest.hw{ right: 5%; }
+  .crest.frs{ left: 14%; }
+  .crest.hw{ right: 14%; }
 
   .hub{
     position:absolute;
@@ -405,6 +398,7 @@
   .hub .t1{font-weight:900; letter-spacing:.3px;}
   .hub .t2{color:var(--muted); font-size:12px; line-height:1.25;}
 
+  /* Division themes (for buttons) */
   body.theme-frs{
     --accentBg: #ff2b2b;
     --accentText: #ffffff;
@@ -418,6 +412,23 @@
     padding:10px 14px;
     border-radius:999px;
   }
+
+  /* Graphs section */
+  .graphs{
+    margin-top:14px;
+    display:none;
+  }
+  .graphs .row{
+    align-items:flex-end;
+  }
+  .graphs canvas{
+    width:100% !important;
+    height:280px !important;
+    background: rgba(0,0,0,0.18);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 10px;
+  }
 </style>
 </head>
 
@@ -427,7 +438,7 @@
   <div id="homeBg" class="home-bg" aria-hidden="true"></div>
 
   <!-- LIVE background video (used for tracker pages) -->
-  <div id="videoBgWrap" class="bg-video-wrap" aria-hidden="true" style="display:none;">
+  <div id="videoBgWrap" class="bg-video-wrap" aria-hidden="true">
     <video id="bgVideo" class="bg-video" autoplay muted loop playsinline preload="auto">
       <source id="bgVideoSource" src="./UKFRS_website_video.mp4" type="video/mp4">
     </video>
@@ -466,7 +477,12 @@
           </div>
 
           <div class="foot" style="margin-top:14px;">
-            Credits for the backrounds to <span style="font-family:var(--mono)">Charlie Glover</span>
+            Files needed next to <span style="font-family:var(--mono)">index.html</span>:
+            <span style="font-family:var(--mono)">F999_photo.jpg</span>,
+            <span style="font-family:var(--mono)">UKFRS_crest.jpg</span>,
+            <span style="font-family:var(--mono)">UKHW_crest.jpg</span>,
+            <span style="font-family:var(--mono)">UKFRS_website_video.mp4</span>,
+            <span style="font-family:var(--mono)">UKHW_website_video.mp4</span>.
           </div>
         </div>
       </div>
@@ -502,15 +518,40 @@
 
           <div class="btnrow">
             <button id="getHoursFRS">Get hours</button>
-            <button id="fromMondayFRS" class="secondary">From Monday</button>
-            <button id="statsFRS" class="secondary" style="display:none;">Statistics</button>
             <button id="exportFRS" class="secondary">Export data</button>
+            <button id="proofAllFRS" class="secondary">Proof pack (All)</button>
+
+            <select id="proofWhoFRS" title="Select callsign for individual proof pack">
+              <option value="">Proof pack (Individual) – choose callsign…</option>
+            </select>
+            <button id="proofOneFRS" class="secondary">Generate</button>
+
             <button id="clearFRS" class="secondary">Clear</button>
           </div>
 
+          <div id="processingFRS" class="info">Processing…</div>
           <div id="errFRS" class="error"></div>
           <div id="okFRS" class="ok"></div>
           <div class="foot" id="metaFRS"></div>
+
+          <div id="graphsFRS" class="graphs">
+            <div class="row">
+              <div>
+                <label>Compare callsign (optional)</label>
+                <select id="compareFRS">
+                  <option value="">Overall only</option>
+                </select>
+              </div>
+              <div style="flex:0.6">
+                <label>&nbsp;</label>
+                <button id="refreshGraphFRS" class="secondary">Refresh graph</button>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <canvas id="chartFRS"></canvas>
+              <div class="smallmuted">Line chart: average shift length by day-of-week (Mon–Sun).</div>
+            </div>
+          </div>
         </div>
 
         <div class="card">
@@ -571,15 +612,40 @@
 
           <div class="btnrow">
             <button id="getHoursHW">Get hours</button>
-            <button id="fromMondayHW" class="secondary">From Monday</button>
-            <button id="statsHW" class="secondary" style="display:none;">Statistics</button>
             <button id="exportHW" class="secondary">Export data</button>
+            <button id="proofAllHW" class="secondary">Proof pack (All)</button>
+
+            <select id="proofWhoHW" title="Select callsign for individual proof pack">
+              <option value="">Proof pack (Individual) – choose callsign…</option>
+            </select>
+            <button id="proofOneHW" class="secondary">Generate</button>
+
             <button id="clearHW" class="secondary">Clear</button>
           </div>
 
+          <div id="processingHW" class="info">Processing…</div>
           <div id="errHW" class="error"></div>
           <div id="okHW" class="ok"></div>
           <div class="foot" id="metaHW"></div>
+
+          <div id="graphsHW" class="graphs">
+            <div class="row">
+              <div>
+                <label>Compare callsign (optional)</label>
+                <select id="compareHW">
+                  <option value="">Overall only</option>
+                </select>
+              </div>
+              <div style="flex:0.6">
+                <label>&nbsp;</label>
+                <button id="refreshGraphHW" class="secondary">Refresh graph</button>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <canvas id="chartHW"></canvas>
+              <div class="smallmuted">Line chart: average shift length by day-of-week (Mon–Sun).</div>
+            </div>
+          </div>
         </div>
 
         <div class="card">
@@ -611,73 +677,32 @@
     </div>
   </div>
 
-  <!-- EXPORT MODAL -->
-  <div id="exportBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Export data">
+  <!-- MODAL -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Output">
     <div class="modal">
-      <h3>Exported shifts (copy/paste)</h3>
-      <textarea id="exportText" readonly></textarea>
-      <div class="smallmuted">Format: Callsign [TAB] Date (M/D/YYYY) [TAB] Time (HH:MM)</div>
+      <h3 id="modalTitle">Output</h3>
+      <textarea id="modalText" readonly></textarea>
+      <div class="smallmuted" id="modalHint"></div>
       <div class="actions">
-        <button id="copyExportBtn">Copy</button>
-        <button id="closeExportBtn" class="secondary">Close</button>
+        <button id="copyModalBtn">Copy</button>
+        <button id="closeModalBtn" class="secondary">Close</button>
       </div>
       <div id="copyMsg" class="smallmuted"></div>
     </div>
   </div>
 
-  <!-- STATS MODAL -->
-  <div id="statsBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Statistics">
-    <div class="modal">
-      <h3>Statistics (selected range)</h3>
-
-      <div class="kpi" style="margin-top:10px;">
-        <div class="box">
-          <div class="t">Shifts in range</div>
-          <div class="v" id="statShiftCount">0</div>
-        </div>
-        <div class="box">
-          <div class="t">Average shift</div>
-          <div class="v" id="statAvgShift">00:00</div>
-        </div>
-        <div class="box">
-          <div class="t">Longest shift</div>
-          <div class="v" id="statMaxShift">00:00</div>
-        </div>
-        <div class="box">
-          <div class="t">Quota completed</div>
-          <div class="v" id="statQuotaCount">0/0</div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:12px;">
-        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Hours by weekday (based on Ended date)</div>
-        <canvas id="chartWeekday" style="width:100%;height:240px;"></canvas>
-      </div>
-
-      <div class="card" style="margin-top:12px;">
-        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Total hours by callsign</div>
-        <canvas id="chartCallsign" style="width:100%;height:260px;"></canvas>
-      </div>
-
-      <div class="card" style="margin-top:12px;">
-        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Shift length distribution (minutes)</div>
-        <canvas id="chartDist" style="width:100%;height:240px;"></canvas>
-      </div>
-
-      <div class="actions">
-        <button id="closeStatsBtn" class="secondary">Close</button>
-      </div>
-    </div>
-  </div>
+<!-- Chart.js (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script>
 (() => {
   const QUOTA_MINUTES = 6 * 60;
+  const PARSER_VERSION = "DutyTracker v4";
 
   const FRS_VIDEO = "./UKFRS_website_video.mp4";
   const HW_VIDEO  = "./UKHW_website_video.mp4";
 
-  // ========= PAGE SWITCHING =========
+  // ====== NAV / VIDEO ======
   const pageHome = document.getElementById("pageHome");
   const pageFRS  = document.getElementById("pageFRS");
   const pageHW   = document.getElementById("pageHW");
@@ -687,7 +712,6 @@
   const bgVideoSource = document.getElementById("bgVideoSource");
 
   function tryPlayVideo(){
-    if (!bgVideo) return;
     bgVideo.muted = true;
     const p = bgVideo.play();
     if (p && typeof p.catch === "function") p.catch(()=>{});
@@ -696,7 +720,6 @@
   document.addEventListener("touchstart", tryPlayVideo, { once:true });
 
   function setVideoSource(src){
-    if (!src) return;
     if (bgVideoSource.getAttribute("src") === src) {
       tryPlayVideo();
       return;
@@ -743,7 +766,6 @@
 
   const goFRS = document.getElementById("goFRS");
   const goHW  = document.getElementById("goHW");
-
   goFRS.addEventListener("click", () => setActivePage("frs"));
   goHW.addEventListener("click",  () => setActivePage("hw"));
 
@@ -758,10 +780,41 @@
   document.getElementById("menuFromFRS").addEventListener("click", () => setActivePage("home"));
   document.getElementById("menuFromHW").addEventListener("click",  () => setActivePage("home"));
 
-  // ========= PARSING =========
+  // ====== MODAL ======
+  const modalBackdrop = document.getElementById("modalBackdrop");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalText = document.getElementById("modalText");
+  const modalHint = document.getElementById("modalHint");
+  const copyModalBtn = document.getElementById("copyModalBtn");
+  const closeModalBtn = document.getElementById("closeModalBtn");
+  const copyMsg = document.getElementById("copyMsg");
+
+  function openModal(title, text, hint){
+    modalTitle.textContent = title || "Output";
+    modalText.value = text || "";
+    modalHint.textContent = hint || "";
+    copyMsg.textContent = "";
+    modalBackdrop.style.display = "flex";
+    modalText.focus();
+    modalText.select();
+  }
+  function closeModal(){ modalBackdrop.style.display = "none"; }
+  modalBackdrop.addEventListener("click", (e) => { if (e.target === modalBackdrop) closeModal(); });
+  closeModalBtn.addEventListener("click", closeModal);
+  copyModalBtn.addEventListener("click", async () => {
+    try{
+      await navigator.clipboard.writeText(modalText.value);
+      copyMsg.textContent = "Copied to clipboard.";
+    }catch{
+      copyMsg.textContent = "Select all (Ctrl+A) then copy (Ctrl+C).";
+    }
+  });
+
+  // ====== PARSING ======
   const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF]/g;
   function cleanLine(s){ return String(s ?? "").replace(/\r?\n$/, "").replace(ZERO_WIDTH_RE, ""); }
 
+  // Accept both divisions callsigns in Duty Ended header line
   const DUTY_ENDED_RE = /\b((?:F(?:[1-9]|1[0-2]))|(?:U[1-6])|(?:ST(?:[7-9]|10)))\s*[—–-]\s*Duty\s+Ended\b/i;
   const CALLSIGN_LINE_RE = /^\s*Callsign:\s*([A-Z]{1,2}\d{1,2})\s*$/i;
   const DURATION_LINE_RE = /^\s*Duration:\s*(.+?)\s*$/i;
@@ -789,16 +842,24 @@
     const m = mm ? Number(mm[1]) : 0;
     return h*60 + m;
   }
+
   function minutesToHHMM(t){
     const h=Math.floor(t/60), m=t%60;
     return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
   }
 
+  // Supports:
+  // UKHW: "Sunday, 22 February 2026 21:46" (day first, month word)
+  // UKFRS: "Thursday, January 29, 2026 10:04 PM" (month name first)
+  // Numeric: "2/5/2026 6:48 PM" etc.
   function parseEndedToDate(endedText){
     let t = cleanLine(endedText).trim();
+    // sometimes lines like "[19:33]Monday, 23 February 2026 19:33"
     t = t.replace(/^\[\d{1,2}:\d{2}\]\s*/, "");
+    // sometimes "— 18:47Monday, 23 February..." (missing space)
     t = t.replace(/^(\d{1,2}:\d{2})([A-Za-z])/, "$1 $2");
 
+    // Day-first: "Sunday, 22 February 2026 21:46"
     const mA = /^(?:[A-Za-z]+(?:day)?[,\s]+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mA) {
       const day = Number(mA[1]);
@@ -808,6 +869,7 @@
       return new Date(year, mon, day);
     }
 
+    // Month-name: "Thursday, January 29, 2026 10:04 PM"
     const mB = /^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)?\s*$/i.exec(t);
     if (mB) {
       const mon = MONTHS[mB[1].toLowerCase()];
@@ -817,6 +879,7 @@
       return new Date(year, mon, day);
     }
 
+    // Numeric: M/D/YYYY ...
     const mC = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?\s*$/i.exec(t);
     if (mC) {
       const a = Number(mC[1]);
@@ -841,23 +904,22 @@
     return new Date(y, mo, d);
   }
 
-  function quotaCellHTML(totalMinutes){
-    if (totalMinutes >= QUOTA_MINUTES) return `<span class="badge green">Quota complete</span>`;
-    const remaining = QUOTA_MINUTES - totalMinutes;
-    return `<span class="badge red">Remaining: ${minutesToHHMM(remaining)}</span>`;
-  }
-
   const FRS_ALLOWED = new Set(Array.from({length:12}, (_,i)=>`F${i+1}`));
   const HW_ALLOWED  = new Set(["U1","U2","U3","U4","U5","U6","ST7","ST8","ST9","ST10"]);
 
-  function extractRecords(logText, allowedSet){
+  // Returns detailed parse stats + unique records
+  function extractRecordsWithStats(logText, allowedSet){
     const lines = String(logText || "").split("\n").map(cleanLine);
-    const records = [];
 
     let inBlock=false;
     let block_callsign=null;
     let block_minutes=null;
     let block_endedDate=null;
+
+    let rawBlocks = 0;
+    let keptBeforeDedupe = 0;
+
+    const rawRecords = [];
 
     function finalize(){
       if (!inBlock) return;
@@ -868,7 +930,12 @@
         block_minutes > 0 &&
         block_endedDate instanceof Date
       ) {
-        records.push({ callsign: block_callsign, ended: block_endedDate, minutes: block_minutes });
+        rawRecords.push({
+          callsign: block_callsign,
+          ended: block_endedDate,
+          minutes: block_minutes
+        });
+        keptBeforeDedupe++;
       }
       inBlock=false; block_callsign=null; block_minutes=null; block_endedDate=null;
     }
@@ -876,6 +943,7 @@
     for (const line of lines) {
       const mStart = DUTY_ENDED_RE.exec(line);
       if (mStart) {
+        rawBlocks++;
         finalize();
         inBlock = true;
         block_callsign = String(mStart[1] || "").toUpperCase();
@@ -897,7 +965,25 @@
       }
     }
     finalize();
-    return records;
+
+    // Dedupe by (callsign|endedDate|minutes)
+    const seen = new Set();
+    const unique = [];
+    let dupes = 0;
+
+    for (const r of rawRecords) {
+      const key = `${r.callsign}|${r.ended.getFullYear()}-${r.ended.getMonth()+1}-${r.ended.getDate()}|${r.minutes}`;
+      if (seen.has(key)) { dupes++; continue; }
+      seen.add(key);
+      unique.push(r);
+    }
+
+    return {
+      rawDutyEndedBlocks: rawBlocks,
+      keptBeforeDedupe,
+      duplicatesRemoved: dupes,
+      records: unique
+    };
   }
 
   function filterRecordsByRange(records, start, end){
@@ -910,15 +996,6 @@
     return out;
   }
 
-  function buildExportText(recordsInRange){
-    const sorted = [...recordsInRange].sort((a,b) => {
-      const da=a.ended.getTime(), db=b.ended.getTime();
-      if (da !== db) return da - db;
-      return a.callsign.localeCompare(b.callsign);
-    });
-    return sorted.map(r => `${r.callsign}\t${formatMDY(r.ended)}\t${minutesToHHMM(r.minutes)}`).join("\n");
-  }
-
   function computeTotals(recordsInRange){
     const totals = {};
     for (const r of recordsInRange){
@@ -927,9 +1004,24 @@
     return totals;
   }
 
+  function quotaStatusHTML(mins){
+    if (mins >= QUOTA_MINUTES) return `<span class="badge green">Quota complete</span>`;
+    return `<span class="badge red">Remaining: ${minutesToHHMM(QUOTA_MINUTES - mins)}</span>`;
+  }
+
+  // Row-as-progress-bar background (green done, red remaining)
+  function rowProgressBackground(mins){
+    const pct = Math.max(0, Math.min(100, (mins / QUOTA_MINUTES) * 100));
+    const g = getComputedStyle(document.documentElement).getPropertyValue("--progGreen").trim() || "rgba(124,255,167,0.22)";
+    const r = getComputedStyle(document.documentElement).getPropertyValue("--progRed").trim() || "rgba(255,90,90,0.18)";
+    if (pct >= 100) return `linear-gradient(90deg, ${g} 0%, ${g} 100%)`;
+    if (pct <= 0) return `linear-gradient(90deg, ${r} 0%, ${r} 100%)`;
+    return `linear-gradient(90deg, ${g} 0%, ${g} ${pct}%, ${r} ${pct}%, ${r} 100%)`;
+  }
+
   function renderTotals(totals, tbodyEl, totalEl){
     tbodyEl.innerHTML = "";
-    const keys = Object.keys(totals).sort();
+    const keys = Object.keys(totals).sort((a,b)=> a.localeCompare(b, undefined, {numeric:true}));
     if (keys.length === 0){
       tbodyEl.innerHTML = '<tr><td colspan="3" style="color:var(--muted)">No results yet.</td></tr>';
       totalEl.textContent = "00:00";
@@ -939,12 +1031,14 @@
     for (const cs of keys){
       const mins = totals[cs];
       grand += mins;
+
       const tr = document.createElement("tr");
-      tr.className = (mins >= QUOTA_MINUTES) ? "quota-complete" : "quota-missing";
+      tr.style.background = rowProgressBackground(mins);
+
       tr.innerHTML = `
         <td>${cs}</td>
         <td>${minutesToHHMM(mins)}</td>
-        <td>${quotaCellHTML(mins)}</td>
+        <td>${quotaStatusHTML(mins)}</td>
       `;
       tbodyEl.appendChild(tr);
     }
@@ -952,277 +1046,326 @@
     return grand;
   }
 
-  // ========= FROM MONDAY PRESET =========
-  function pad2(n){ return String(n).padStart(2,"0"); }
-  function dateToInputValue(d){
-    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-  }
-  function startOfThisMonday(today=new Date()){
-    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const day = d.getDay(); // 0=Sun..6=Sat
-    const diff = (day === 0) ? -6 : (1 - day);
-    d.setDate(d.getDate() + diff);
-    return d;
-  }
-
-  // ========= CANVAS CHARTS (NO LIBS) =========
-  function setupCanvas(canvas){
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-    const ctx = canvas.getContext("2d");
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return ctx;
-  }
-  function clearCanvas(ctx, w, h){ ctx.clearRect(0,0,w,h); }
-
-  function drawBarChart(canvas, labels, values){
-    const ctx = setupCanvas(canvas);
-    const w = canvas.getBoundingClientRect().width;
-    const h = canvas.getBoundingClientRect().height;
-    clearCanvas(ctx, w, h);
-
-    const padL = 42, padR = 12, padT = 12, padB = 34;
-    const innerW = w - padL - padR;
-    const innerH = h - padT - padB;
-
-    const maxV = Math.max(1, ...values);
-    const n = values.length || 1;
-    const gap = 8;
-    const barW = Math.max(6, (innerW - gap*(n-1)) / n);
-
-    ctx.globalAlpha = 0.65;
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(padL, padT);
-    ctx.lineTo(padL, padT + innerH);
-    ctx.lineTo(padL + innerW, padT + innerH);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-
-    for (let i=0;i<n;i++){
-      const v = values[i] || 0;
-      const bh = (v / maxV) * innerH;
-      const x = padL + i*(barW+gap);
-      const y = padT + innerH - bh;
-
-      ctx.globalAlpha = 0.20;
-      ctx.fillStyle = "white";
-      ctx.fillRect(x, y, barW, bh);
-      ctx.globalAlpha = 0.55;
-      ctx.strokeStyle = "white";
-      ctx.strokeRect(x, y, barW, bh);
-      ctx.globalAlpha = 1;
-
-      ctx.fillStyle = "white";
-      ctx.globalAlpha = 0.8;
-      ctx.font = "12px ui-sans-serif, system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      ctx.fillText(String(labels[i] ?? ""), x + barW/2, padT + innerH + 10);
-      ctx.globalAlpha = 1;
-    }
-  }
-
-  function drawHistogram(canvas, minutes, binSize=30, maxBins=12){
-    const ctx = setupCanvas(canvas);
-    const w = canvas.getBoundingClientRect().width;
-    const h = canvas.getBoundingClientRect().height;
-    clearCanvas(ctx, w, h);
-
-    const data = (minutes || []).filter(n => Number.isFinite(n) && n > 0);
-    if (data.length === 0){
-      ctx.fillStyle = "rgba(255,255,255,0.75)";
-      ctx.font = "14px ui-sans-serif, system-ui";
-      ctx.fillText("No shift durations to chart.", 16, 30);
-      return;
-    }
-
-    const maxM = Math.max(...data);
-    const binsCount = Math.min(maxBins, Math.max(3, Math.ceil(maxM / binSize)));
-    const bins = Array.from({length: binsCount}, ()=>0);
-
-    for (const m of data){
-      const idx = Math.min(binsCount-1, Math.floor(m / binSize));
-      bins[idx]++;
-    }
-
-    const labels = bins.map((_,i)=>{
-      const a = i*binSize;
-      return (i===binsCount-1) ? `${a}+` : `${a}-${a+binSize-1}`;
+  function buildExportShiftText(recordsInRange){
+    const sorted = [...recordsInRange].sort((a,b) => {
+      const da=a.ended.getTime(), db=b.ended.getTime();
+      if (da !== db) return da - db;
+      return a.callsign.localeCompare(b.callsign, undefined, {numeric:true});
     });
-
-    drawBarChart(canvas, labels, bins);
+    return sorted.map(r => `${r.callsign}\t${formatMDY(r.ended)}\t${minutesToHHMM(r.minutes)}`).join("\n");
   }
 
-  // ========= EXPORT MODAL =========
-  const exportBackdrop = document.getElementById("exportBackdrop");
-  const exportText = document.getElementById("exportText");
-  const copyExportBtn = document.getElementById("copyExportBtn");
-  const closeExportBtn = document.getElementById("closeExportBtn");
-  const copyMsg = document.getElementById("copyMsg");
-
-  function openExportModal(text){
-    exportText.value = text || "";
-    copyMsg.textContent = "";
-    exportBackdrop.style.display = "flex";
-    exportText.focus();
-    exportText.select();
+  // ====== GRAPHING (Mon–Sun) ======
+  const DOW_LABELS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  function jsDowToMon0(d){ // JS: Sun=0..Sat=6 => Mon=0..Sun=6
+    const js = d.getDay();
+    return (js + 6) % 7;
   }
-  function closeExportModal(){ exportBackdrop.style.display = "none"; }
 
-  exportBackdrop.addEventListener("click", (e) => { if (e.target === exportBackdrop) closeExportModal(); });
-  closeExportBtn.addEventListener("click", closeExportModal);
-  copyExportBtn.addEventListener("click", async () => {
-    try{
-      await navigator.clipboard.writeText(exportText.value);
-      copyMsg.textContent = "Copied to clipboard.";
-    }catch{
-      copyMsg.textContent = "Select all (Ctrl+A) then copy (Ctrl+C).";
+  function avgByDow(records, callsignFilter /* string|"" */){
+    const buckets = Array.from({length:7}, ()=>({sum:0,count:0}));
+    for (const r of records){
+      if (callsignFilter && r.callsign !== callsignFilter) continue;
+      const i = jsDowToMon0(r.ended);
+      buckets[i].sum += r.minutes;
+      buckets[i].count += 1;
     }
-  });
+    return buckets.map(b => b.count ? (b.sum / b.count) : null);
+  }
 
-  // ========= STATS MODAL =========
-  const statsBackdrop = document.getElementById("statsBackdrop");
-  const closeStatsBtn = document.getElementById("closeStatsBtn");
+  function toTooltipHHMM(v){
+    if (v == null) return "No data";
+    return minutesToHHMM(Math.round(v));
+  }
 
-  const statShiftCount = document.getElementById("statShiftCount");
-  const statAvgShift   = document.getElementById("statAvgShift");
-  const statMaxShift   = document.getElementById("statMaxShift");
-  const statQuotaCount = document.getElementById("statQuotaCount");
+  function makeLineChart(canvas, overall, selected, selectedLabel){
+    return new Chart(canvas, {
+      type: "line",
+      data: {
+        labels: DOW_LABELS,
+        datasets: [
+          {
+            label: "Overall average shift length",
+            data: overall,
+            tension: 0.25,
+            spanGaps: false,
+            pointRadius: 3,
+          },
+          ...(selected ? [{
+            label: `Average for ${selectedLabel}`,
+            data: selected,
+            tension: 0.25,
+            spanGaps: false,
+            pointRadius: 3,
+          }] : [])
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: "#e9ecf5" } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${toTooltipHHMM(ctx.parsed.y)}`
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: "#aeb7d3" }, grid: { color: "rgba(255,255,255,0.06)" } },
+          y: {
+            ticks: {
+              color: "#aeb7d3",
+              callback: (val) => minutesToHHMM(Math.round(val))
+            },
+            grid: { color: "rgba(255,255,255,0.06)" }
+          }
+        }
+      }
+    });
+  }
 
-  const chartWeekday  = document.getElementById("chartWeekday");
-  const chartCallsign = document.getElementById("chartCallsign");
-  const chartDist     = document.getElementById("chartDist");
-
-  function closeStatsModal(){ statsBackdrop.style.display = "none"; }
-  function openStatsModal(){ statsBackdrop.style.display = "flex"; }
-
-  statsBackdrop.addEventListener("click", (e) => { if (e.target === statsBackdrop) closeStatsModal(); });
-  closeStatsBtn.addEventListener("click", closeStatsModal);
-
-  function wireDivision(opts){
+  // ====== WIRE DIVISION ======
+  function wireDivision(cfg){
     const {
+      divisionName, allowedSet,
       logsEl, startEl, endEl,
       btnGet, btnExport, btnClear,
-      btnStats, btnFromMonday,
-      errEl, okEl, metaEl,
+      btnProofAll, selProofWho, btnProofOne,
+      processingEl, errEl, okEl, metaEl,
       rowsEl, totalEl,
-      allowedSet
-    } = opts;
+      graphsWrap, compareSel, refreshGraphBtn, chartCanvas
+    } = cfg;
 
-    let lastRecordsInRange = null;
-    let lastTotals = null;
+    let last = {
+      parsedStats: null,
+      recordsAll: [],
+      recordsInRange: [],
+      totals: {},
+      start: null,
+      end: null
+    };
+
+    let chart = null;
 
     function show(el, msg){
       el.style.display = msg ? "block" : "none";
       el.textContent = msg || "";
     }
 
-    btnFromMonday.addEventListener("click", () => {
-      const today = new Date();
-      const mon = startOfThisMonday(today);
-      startEl.value = dateToInputValue(mon);
-      endEl.value   = dateToInputValue(today);
-    });
+    function setProcessing(on){
+      processingEl.style.display = on ? "block" : "none";
+      if (on) show(errEl, ""), show(okEl, "");
+    }
 
-    btnGet.addEventListener("click", () => {
-      show(errEl, ""); show(okEl, ""); metaEl.textContent = "";
-
+    function validateInputs(){
       const text = logsEl.value || "";
       if (!text.trim()){
         show(errEl, "Paste logs first.");
-        return;
+        return null;
       }
-
       const start = inputDate(startEl);
       const end = inputDate(endEl);
       if (start && end && start.getTime() > end.getTime()){
         show(errEl, "Start date must be on or before End date.");
+        return null;
+      }
+      return { text, start, end };
+    }
+
+    function rebuildSelectorsFromTotals(totalsObj){
+      // Compare dropdown: show Overall only + callsigns present
+      const present = Object.keys(totalsObj).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
+
+      const keepValueCompare = compareSel.value;
+      compareSel.innerHTML = `<option value="">Overall only</option>` +
+        present.map(cs => `<option value="${cs}">${cs}</option>`).join("");
+      if ([...compareSel.options].some(o=>o.value===keepValueCompare)) compareSel.value = keepValueCompare;
+
+      // Proof individual selector: show callsigns present (or allow full list if none present)
+      const keepValueProof = selProofWho.value;
+      if (present.length){
+        selProofWho.innerHTML =
+          `<option value="">Proof pack (Individual) – choose callsign…</option>` +
+          present.map(cs => `<option value="${cs}">${cs}</option>`).join("");
+      } else {
+        // fallback: allow all from allowedSet
+        const all = [...allowedSet].sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
+        selProofWho.innerHTML =
+          `<option value="">Proof pack (Individual) – choose callsign…</option>` +
+          all.map(cs => `<option value="${cs}">${cs}</option>`).join("");
+      }
+      if ([...selProofWho.options].some(o=>o.value===keepValueProof)) selProofWho.value = keepValueProof;
+    }
+
+    function refreshGraph(){
+      if (!last.recordsInRange.length){
+        graphsWrap.style.display = "none";
         return;
       }
 
-      const records = extractRecords(text, allowedSet);
-      const inRange = filterRecordsByRange(records, start, end);
-      const totals = computeTotals(inRange);
+      const chosen = (compareSel.value || "").trim();
+      const overall = avgByDow(last.recordsInRange, "");
+      const selected = chosen ? avgByDow(last.recordsInRange, chosen) : null;
 
-      const grand = renderTotals(totals, rowsEl, totalEl);
-      metaEl.textContent = `Parsed ${records.length} Duty Ended blocks. Kept ${inRange.length} in range.`;
-      show(okEl, grand > 0 ? "Done." : "No matching shifts in that range.");
+      if (chart) { chart.destroy(); chart = null; }
+      chart = makeLineChart(chartCanvas, overall, selected, chosen);
+      graphsWrap.style.display = "block";
+    }
 
-      lastRecordsInRange = inRange;
-      lastTotals = totals;
-      btnStats.style.display = "inline-block";
+    btnGet.addEventListener("click", () => {
+      const v = validateInputs();
+      if (!v) return;
+
+      setProcessing(true);
+      // let UI paint the "Processing..." before heavy work
+      setTimeout(() => {
+        const { text, start, end } = v;
+
+        const parsed = extractRecordsWithStats(text, allowedSet);
+        const inRange = filterRecordsByRange(parsed.records, start, end);
+        const totals = computeTotals(inRange);
+
+        last.parsedStats = parsed;
+        last.recordsAll = parsed.records;
+        last.recordsInRange = inRange;
+        last.totals = totals;
+        last.start = start;
+        last.end = end;
+
+        const grand = renderTotals(totals, rowsEl, totalEl);
+
+        rebuildSelectorsFromTotals(totals);
+
+        const startStr = start ? formatMDY(start) : "—";
+        const endStr = end ? formatMDY(end) : "—";
+
+        metaEl.textContent =
+          `Range: ${startStr} → ${endStr} | ` +
+          `Duty Ended blocks seen: ${parsed.rawDutyEndedBlocks} | ` +
+          `Kept: ${parsed.keptBeforeDedupe} | ` +
+          `Duplicates removed: ${parsed.duplicatesRemoved} | ` +
+          `Counted in range: ${inRange.length}`;
+
+        show(okEl, grand > 0 ? "Done." : "No matching shifts in that range.");
+        setProcessing(false);
+
+        // Graph appears only after Get hours
+        refreshGraph();
+      }, 0);
     });
 
-    btnStats.addEventListener("click", () => {
-      show(errEl, ""); show(okEl, "");
-
-      if (!lastRecordsInRange || !lastTotals){
-        show(errEl, "Click Get hours first.");
-        return;
-      }
-
-      const shiftCount = lastRecordsInRange.length;
-      const durations = lastRecordsInRange.map(r => r.minutes).filter(n => Number.isFinite(n) && n > 0);
-      const totalMins = durations.reduce((a,b)=>a+b, 0);
-      const avg = shiftCount ? Math.round(totalMins / shiftCount) : 0;
-      const max = durations.length ? Math.max(...durations) : 0;
-
-      const callsigns = Object.keys(lastTotals);
-      const quotaDone = callsigns.filter(cs => lastTotals[cs] >= QUOTA_MINUTES).length;
-
-      statShiftCount.textContent = String(shiftCount);
-      statAvgShift.textContent   = minutesToHHMM(avg);
-      statMaxShift.textContent   = minutesToHHMM(max);
-      statQuotaCount.textContent = `${quotaDone}/${callsigns.length}`;
-
-      openStatsModal();
-
-      // Force layout + draw after TWO frames (reliable canvas sizing)
-      void statsBackdrop.offsetHeight;
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const weekdayLabels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-          const weekdayMins = [0,0,0,0,0,0,0];
-          for (const r of lastRecordsInRange){
-            const d = r.ended.getDay(); // 0=Sun..6=Sat
-            const idx = (d === 0) ? 6 : (d - 1);
-            weekdayMins[idx] += r.minutes;
-          }
-          const weekdayHours = weekdayMins.map(m => Math.round((m/60)*10)/10);
-          drawBarChart(chartWeekday, weekdayLabels, weekdayHours);
-
-          const csSorted = [...callsigns].sort((a,b)=>a.localeCompare(b));
-          const csHours = csSorted.map(cs => Math.round((lastTotals[cs]/60)*10)/10);
-          drawBarChart(chartCallsign, csSorted, csHours);
-
-          drawHistogram(chartDist, durations, 30, 12);
-        });
-      });
-    });
+    refreshGraphBtn.addEventListener("click", () => refreshGraph());
+    compareSel.addEventListener("change", () => refreshGraph());
 
     btnExport.addEventListener("click", () => {
-      show(errEl, ""); show(okEl, "");
+      const v = validateInputs();
+      if (!v) return;
 
-      const text = logsEl.value || "";
-      if (!text.trim()){
-        show(errEl, "Paste logs first (then export).");
+      const { text, start, end } = v;
+      const parsed = extractRecordsWithStats(text, allowedSet);
+      const inRange = filterRecordsByRange(parsed.records, start, end);
+      openModal(
+        `Export data (${divisionName})`,
+        buildExportShiftText(inRange),
+        "Format: Callsign [TAB] Date (M/D/YYYY) [TAB] Time (HH:MM)"
+      );
+    });
+
+    btnProofAll.addEventListener("click", () => {
+      if (!last.parsedStats) {
+        show(errEl, "Run Get hours first (so proof pack matches the displayed range).");
+        return;
+      }
+      const parsed = last.parsedStats;
+      const inRange = last.recordsInRange;
+      const totals = last.totals;
+
+      const startStr = last.start ? formatMDY(last.start) : "—";
+      const endStr = last.end ? formatMDY(last.end) : "—";
+
+      const grand = Object.values(totals).reduce((a,b)=>a+b,0);
+      const now = new Date();
+
+      const lines = [];
+      lines.push("=== PROOF PACK (ALL) ===");
+      lines.push(`Division: ${divisionName}`);
+      lines.push(`Date Range: ${startStr} - ${endStr}`);
+      lines.push("");
+      lines.push(`Duty Ended blocks seen (raw): ${parsed.rawDutyEndedBlocks}`);
+      lines.push(`Shifts kept before dedupe: ${parsed.keptBeforeDedupe}`);
+      lines.push(`Duplicates removed: ${parsed.duplicatesRemoved}`);
+      lines.push(`Shifts counted (in range): ${inRange.length}`);
+      lines.push("");
+      lines.push(`Total time (all): ${minutesToHHMM(grand)}`);
+      lines.push(`Quota: 06:00`);
+      lines.push("");
+      lines.push(`Generated: ${now.toLocaleString()}`);
+      lines.push(`Parser: ${PARSER_VERSION}`);
+      lines.push("");
+      lines.push("--- TOTALS (IN RANGE) ---");
+
+      const keys = Object.keys(totals).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
+      if (!keys.length) {
+        lines.push("(No totals)");
+      } else {
+        for (const cs of keys){
+          const mins = totals[cs];
+          if (mins >= QUOTA_MINUTES) lines.push(`${cs}\t${minutesToHHMM(mins)}\tQuota complete`);
+          else lines.push(`${cs}\t${minutesToHHMM(mins)}\tRemaining: ${minutesToHHMM(QUOTA_MINUTES - mins)}`);
+        }
+      }
+
+      openModal(`Proof pack (All) — ${divisionName}`, lines.join("\n"), "Copy/paste into audit logs / docs.");
+    });
+
+    btnProofOne.addEventListener("click", () => {
+      if (!last.parsedStats) {
+        show(errEl, "Run Get hours first (so proof pack matches the displayed range).");
+        return;
+      }
+      const who = (selProofWho.value || "").trim();
+      if (!who) {
+        show(errEl, "Select a callsign for individual proof pack.");
         return;
       }
 
-      const start = inputDate(startEl);
-      const end = inputDate(endEl);
-      if (start && end && start.getTime() > end.getTime()){
-        show(errEl, "Start date must be on or before End date.");
-        return;
-      }
+      const parsed = last.parsedStats;
+      const inRangeAll = last.recordsInRange;
+      const inRangeWho = inRangeAll.filter(r => r.callsign === who);
 
-      const records = extractRecords(text, allowedSet);
-      const inRange = filterRecordsByRange(records, start, end);
-      openExportModal(buildExportText(inRange));
+      const totalWho = inRangeWho.reduce((a,r)=>a+r.minutes,0);
+
+      const startStr = last.start ? formatMDY(last.start) : "—";
+      const endStr = last.end ? formatMDY(last.end) : "—";
+
+      const now = new Date();
+
+      const lines = [];
+      lines.push("=== PROOF PACK (INDIVIDUAL) ===");
+      lines.push(`Division: ${divisionName}`);
+      lines.push(`Callsign: ${who}`);
+      lines.push(`Date Range: ${startStr} - ${endStr}`);
+      lines.push("");
+      lines.push(`Duty Ended blocks seen (raw): ${parsed.rawDutyEndedBlocks}`);
+      lines.push(`Shifts kept before dedupe: ${parsed.keptBeforeDedupe}`);
+      lines.push(`Duplicates removed: ${parsed.duplicatesRemoved}`);
+      lines.push(`Shifts counted for ${who} (in range): ${inRangeWho.length}`);
+      lines.push("");
+      lines.push(`Total time: ${minutesToHHMM(totalWho)}`);
+      lines.push(`Quota: 06:00`);
+      if (totalWho >= QUOTA_MINUTES) lines.push(`Status: Quota complete`);
+      else lines.push(`Remaining: ${minutesToHHMM(QUOTA_MINUTES - totalWho)}`);
+      lines.push("");
+      lines.push(`Generated: ${now.toLocaleString()}`);
+      lines.push(`Parser: ${PARSER_VERSION}`);
+      lines.push("");
+      lines.push("--- SHIFT LIST (IN RANGE) ---");
+      lines.push("Callsign\tDate\tTime");
+
+      lines.push(buildExportShiftText(inRangeWho) || "(No shifts)");
+
+      openModal(`Proof pack (Individual) — ${divisionName} — ${who}`, lines.join("\n"), "This is the audit pack for ONE person.");
     });
 
     btnClear.addEventListener("click", () => {
@@ -1233,50 +1376,83 @@
       totalEl.textContent = "00:00";
       show(errEl, "");
       show(okEl, "");
+      show(processingEl, "");
       metaEl.textContent = "";
-      closeExportModal();
-      closeStatsModal();
-      btnStats.style.display = "none";
-      lastRecordsInRange = null;
-      lastTotals = null;
+      graphsWrap.style.display = "none";
+
+      compareSel.innerHTML = `<option value="">Overall only</option>`;
+      selProofWho.innerHTML = `<option value="">Proof pack (Individual) – choose callsign…</option>`;
+
+      if (chart) { chart.destroy(); chart = null; }
+      last = { parsedStats:null, recordsAll:[], recordsInRange:[], totals:{}, start:null, end:null };
+
+      closeModal();
       logsEl.focus();
     });
   }
 
+  // ====== Hook up both divisions ======
   wireDivision({
+    divisionName: "UKFRS",
+    allowedSet: FRS_ALLOWED,
+
     logsEl: document.getElementById("logsFRS"),
     startEl: document.getElementById("startDateFRS"),
     endEl: document.getElementById("endDateFRS"),
+
     btnGet: document.getElementById("getHoursFRS"),
     btnExport: document.getElementById("exportFRS"),
     btnClear: document.getElementById("clearFRS"),
-    btnStats: document.getElementById("statsFRS"),
-    btnFromMonday: document.getElementById("fromMondayFRS"),
+
+    btnProofAll: document.getElementById("proofAllFRS"),
+    selProofWho: document.getElementById("proofWhoFRS"),
+    btnProofOne: document.getElementById("proofOneFRS"),
+
+    processingEl: document.getElementById("processingFRS"),
     errEl: document.getElementById("errFRS"),
     okEl: document.getElementById("okFRS"),
     metaEl: document.getElementById("metaFRS"),
+
     rowsEl: document.getElementById("rowsFRS"),
     totalEl: document.getElementById("totalFRS"),
-    allowedSet: FRS_ALLOWED
+
+    graphsWrap: document.getElementById("graphsFRS"),
+    compareSel: document.getElementById("compareFRS"),
+    refreshGraphBtn: document.getElementById("refreshGraphFRS"),
+    chartCanvas: document.getElementById("chartFRS"),
   });
 
   wireDivision({
+    divisionName: "UKHW",
+    allowedSet: HW_ALLOWED,
+
     logsEl: document.getElementById("logsHW"),
     startEl: document.getElementById("startDateHW"),
     endEl: document.getElementById("endDateHW"),
+
     btnGet: document.getElementById("getHoursHW"),
     btnExport: document.getElementById("exportHW"),
     btnClear: document.getElementById("clearHW"),
-    btnStats: document.getElementById("statsHW"),
-    btnFromMonday: document.getElementById("fromMondayHW"),
+
+    btnProofAll: document.getElementById("proofAllHW"),
+    selProofWho: document.getElementById("proofWhoHW"),
+    btnProofOne: document.getElementById("proofOneHW"),
+
+    processingEl: document.getElementById("processingHW"),
     errEl: document.getElementById("errHW"),
     okEl: document.getElementById("okHW"),
     metaEl: document.getElementById("metaHW"),
+
     rowsEl: document.getElementById("rowsHW"),
     totalEl: document.getElementById("totalHW"),
-    allowedSet: HW_ALLOWED
+
+    graphsWrap: document.getElementById("graphsHW"),
+    compareSel: document.getElementById("compareHW"),
+    refreshGraphBtn: document.getElementById("refreshGraphHW"),
+    chartCanvas: document.getElementById("chartHW"),
   });
 
+  // start at home
   setActivePage("home");
 })();
 </script>
